@@ -292,12 +292,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     <div id="pace-banner" style="margin-bottom: var(--sp-3);"></div>
     <div>
       <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:var(--sp-1);">
-        <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">План vs факт по днях</div>
+        <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">Ідеальний темп vs факт по днях</div>
       </div>
       <div id="chart-month"></div>
       <div class="legend">
-        <span><i style="background:var(--border-strong);"></i>план (наростаючим підсумком)</span>
-        <span><i style="background:var(--accent);"></i>факт (наростаючим підсумком)</span>
+        <span><i style="background:var(--border-strong);"></i>ідеальний темп (рівний розподіл)</span>
+        <span><i style="background:var(--accent);"></i>факт нижче темпу (заощаджено)</span>
+        <span><i style="background:var(--danger);"></i>факт вище темпу (перевитрата)</span>
       </div>
     </div>
   </div>
@@ -1197,10 +1198,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var el = $('chart-month');
     var N = calc.N;
     var w = 620, h = 180, padL = 46, padR = 16, padT = 16, padB = 24;
+    // Сіра лінія показує ІДЕАЛЬНИЙ темп — рівний розподіл дискреційного бюджету
+    // на всі дні місяця (calc.base щодня), а НЕ скоригований після перевитрат план.
+    // Скоригований план (calc.plans[]) вже видно в hero-картці й банері темпу —
+    // тут навмисно показуємо стабільний орієнтир "як мало бути в ідеалі".
     var planCum = [0], actCum = [0], lastActIdx = 0;
     var pc = 0, ac = 0;
     for (var d = 1; d <= N; d++){
-      pc += calc.plans[d]; planCum.push(pc);
+      pc += calc.base; planCum.push(pc);
       var a = actualOf(m, d);
       if (a !== null){ ac += a; lastActIdx = d; }
       actCum.push(ac);
@@ -1218,12 +1223,47 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       grid += '<text x="' + (padL - 8) + '" y="' + (y(v) + 3) + '" text-anchor="end" font-size="9.5" fill="' + mutedColor + '">' + Math.round(v / 1000) + 'к</text>';
     }
     var planPath = ''; for (var i = 0; i <= N; i++) planPath += (i === 0 ? 'M' : 'L') + x(i) + ',' + y(planCum[i]) + ' ';
-    var actPath = ''; for (var j = 0; j <= lastActIdx; j++) actPath += (j === 0 ? 'M' : 'L') + x(j) + ',' + y(actCum[j]) + ' ';
+
+    // Фактична лінія фарбується по відрізках: там, де накопичена витрата йде
+    // НИЖЧЕ ідеального темпу — зелений (заощаджуємо), де ВИЩЕ — червоний
+    // (перевитрачаємо). У точці, де лінія перетинає ідеальний темп, рахуємо
+    // точку перетину лінійною інтерполяцією, щоб колір мінявся рівно там,
+    // а не по всьому відрізку між днями.
+    var actSegPaths = '';
+    var lastColor = C_ACCENT;
+    if (lastActIdx > 0){
+      var colorFor = function(diff){ return diff <= 0 ? C_ACCENT : C_DANGER; };
+      var curColor = colorFor(actCum[0] - planCum[0]);
+      var curPts = [[x(0), y(actCum[0])]];
+      for (var seg = 0; seg < lastActIdx; seg++){
+        var d0 = actCum[seg] - planCum[seg];
+        var d1 = actCum[seg + 1] - planCum[seg + 1];
+        var p1 = [x(seg + 1), y(actCum[seg + 1])];
+        var color1 = colorFor(d1);
+        var crosses = ((d0 <= 0 && d1 > 0) || (d0 > 0 && d1 <= 0)) && d0 !== d1;
+        if (crosses){
+          var t = d0 / (d0 - d1);
+          var p0 = [x(seg), y(actCum[seg])];
+          var cx = p0[0] + t * (p1[0] - p0[0]);
+          var cy = p0[1] + t * (p1[1] - p0[1]);
+          curPts.push([cx, cy]);
+          actSegPaths += '<path d="M' + curPts.map(function(pt){ return pt[0] + ',' + pt[1]; }).join(' L') + '" fill="none" stroke="' + curColor + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />';
+          curColor = color1;
+          curPts = [[cx, cy], p1];
+        } else {
+          curPts.push(p1);
+          curColor = color1;
+        }
+      }
+      actSegPaths += '<path d="M' + curPts.map(function(pt){ return pt[0] + ',' + pt[1]; }).join(' L') + '" fill="none" stroke="' + curColor + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />';
+      lastColor = curColor;
+    }
+
     var liveDot = '';
     if (lastActIdx === TODAY_DAY && lastActIdx > 0){
-      liveDot = '<circle class="chart-dot-live" cx="' + x(lastActIdx) + '" cy="' + y(actCum[lastActIdx]) + '" r="4" fill="' + C_ACCENT + '" stroke="' + ringColor + '" stroke-width="1.5" />';
+      liveDot = '<circle class="chart-dot-live" cx="' + x(lastActIdx) + '" cy="' + y(actCum[lastActIdx]) + '" r="4" fill="' + lastColor + '" stroke="' + ringColor + '" stroke-width="1.5" />';
     } else if (lastActIdx > 0){
-      liveDot = '<circle cx="' + x(lastActIdx) + '" cy="' + y(actCum[lastActIdx]) + '" r="4" fill="' + C_ACCENT + '" stroke="' + ringColor + '" stroke-width="1.5" />';
+      liveDot = '<circle cx="' + x(lastActIdx) + '" cy="' + y(actCum[lastActIdx]) + '" r="4" fill="' + lastColor + '" stroke="' + ringColor + '" stroke-width="1.5" />';
     }
     var xlabels = '';
     [1, Math.round(N/4), Math.round(N/2), Math.round(3*N/4), N].forEach(function(i){
@@ -1232,7 +1272,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     });
     el.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; height:auto; display:block;">' + grid +
       '<path d="' + planPath + '" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="4,4" stroke-linejoin="round" />' +
-      '<path d="' + actPath + '" fill="none" stroke="' + C_ACCENT + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />' +
+      actSegPaths +
       liveDot + xlabels + '</svg>';
   }
 
