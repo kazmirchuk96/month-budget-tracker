@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Бюджет — трекер витрат</title>
+<meta name="theme-color" content="#0F0E0A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Бюджет">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  html, body { margin: 0; padding: 0; background: #0F0E0A; }
+</style>
+</head>
+<body>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
+:root {
+  --surface-0: #0F0E0A;
+  --surface-1: #1A1914;
+  --surface-2: #232119;
+  --surface-3: #2C2921;
+  --border: #3A3830;
+  --border-strong: #7C7766;
+  --text-primary: #F3F1E8;
+  --text-secondary: #B7B4A6;
+  --text-muted: #9A9784;
+
+  --accent: #2FBE93;
+  --accent-soft: rgba(47, 190, 147, 0.16);
+  --accent-glow: rgba(47, 190, 147, 0.07);
+  --accent-text: #6EE7C0;
+  --neutral-progress: #A8A292;
+  --neutral-progress-soft: rgba(168, 162, 146, 0.14);
+  --warn: #E8A93C;
+  --warn-soft: rgba(232, 169, 60, 0.16);
+  --warn-text: #E8A93C;
+  --danger: #FF7A54;
+  --danger-soft: rgba(255, 122, 84, 0.16);
+  --focus: #1D9E75;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md: 0 1px 2px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg: 0 1px 2px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.65);
+
+  --bw: 1px;
+  --bw-emphasis: 2px;
+  --bw-accent: 3px;
+
+  --tap: 44px;
+  --tap-sm: 32px;
+
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 22px;
+  --fs-display: 40px;
+  --fs-h1: var(--fs-xl);
+
+  --lh-display: 1.05;
+  --lh-heading: 1.2;
+  --lh-body: 1.45;
+  --lh-caption: 1.5;
+
+  --tr-display: -0.03em;
+  --tr-heading: -0.015em;
+  --tr-caption: 0.01em;
+
+  --sp-0: 2px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+}
+
+#tracker-root {
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--text-primary);
+  width: 100%;
+  max-width: 720px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  position: relative;
+  background: var(--surface-0);
+  padding: max(var(--sp-5), env(safe-area-inset-top)) max(var(--sp-5), env(safe-area-inset-right)) max(var(--sp-5), env(safe-area-inset-bottom)) max(var(--sp-5), env(safe-area-inset-left));
+  border-radius: var(--r-xl);
+  overflow-x: clip;
+  line-height: var(--lh-body);
+}
+#tracker-root h1 { font-family: 'Fraunces', serif; font-weight: 600; letter-spacing: var(--tr-heading); line-height: var(--lh-heading); }
+#tracker-root h2 { font-family: 'Fraunces', serif; font-weight: 600; }
+#tracker-root p { max-width: 68ch; }
+#tracker-root h1, #tracker-root .hero-num, #tracker-root .section-label {
+  font-optical-sizing: auto;
+  font-variation-settings: 'SOFT' 20, 'WONK' 1;
+}
+.section-label { font-family: 'Fraunces', serif; font-size: var(--fs-lg); font-weight: 500; line-height: var(--lh-heading); letter-spacing: var(--tr-heading); margin-bottom: var(--sp-3); }
+
+.journey-strip { display: flex; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-1) var(--sp-0) var(--sp-2); scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%); }
+.journey-strip::-webkit-scrollbar { display: none; }
+.journey-cell { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+.journey-dot-outer { width: var(--tap); height: var(--tap); box-sizing: border-box; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 3px; transition: transform 0.1s, box-shadow 0.2s; }
+.journey-dot-inner { width: 100%; height: 100%; border-radius: 50%; background: var(--surface-1); display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.journey-dot-outer.is-future { background: var(--surface-2) !important; }
+.journey-dot-outer.is-future .journey-dot-inner { color: var(--text-muted); font-weight: 500; background: transparent; }
+.journey-dot-outer.is-today { box-shadow: 0 0 0 2px var(--accent); }
+.journey-cell:active .journey-dot-outer { transform: scale(0.92); }
+.journey-cell.selected .journey-dot-outer { transform: scale(1.09); }
+.journey-num { font-size: var(--fs-xs); color: var(--text-muted); }
+.journey-cell.today .journey-num { color: var(--text-primary); font-weight: 700; }
+
+.card { background: var(--surface-1); border: var(--bw) solid var(--border); border-radius: var(--r-xl); padding: var(--sp-5); box-shadow: var(--shadow-sm); }
+.hero-num { font-family: 'Fraunces', serif; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: var(--tr-display); line-height: var(--lh-display); transition: color 0.3s; }
+.chip, .badge, .today-pill { display: inline-flex; align-items: center; font-size: var(--fs-xs); font-weight: 600; padding: var(--sp-1) var(--sp-3); border-radius: var(--r-pill); letter-spacing: 0.02em; white-space: nowrap; }
+.badge-ok, .today-pill { background: var(--accent-soft); color: var(--accent-text); }
+.badge-behind { background: var(--warn-soft); color: var(--warn-text); }
+.badge-over { background: var(--danger-soft); color: var(--danger); }
+.stat-card { min-width: 0; overflow-wrap: anywhere; }
+.stat-card .badge { white-space: nowrap; }
+.stat-card .stat-card-top { display:flex; flex-direction:column; align-items:flex-start; gap: var(--sp-1); margin-bottom:var(--sp-1); }
+.group-label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-top: var(--sp-4); margin-bottom: var(--sp-2); }
+.metric-row { padding: var(--sp-3) var(--sp-4); border: var(--bw) solid transparent; border-radius: var(--r-lg); margin-bottom: var(--sp-3); display: flex; gap: var(--sp-3); background: var(--surface-2); }
+.metric-accent { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 0.42em; }
+.metric-body { flex: 1; min-width: 0; }
+.metric-top-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-2); }
+.metric-label { font-size: var(--fs-sm); color: var(--text-secondary); font-weight: 500; }
+.plan-note { font-size: var(--fs-sm); color: var(--text-muted); letter-spacing: var(--tr-caption); line-height: var(--lh-caption); background: none; border: none; padding: 0; font-family: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.metric-input-row { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.note-input { width: 100%; box-sizing: border-box; margin-top: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-md); border: var(--bw) solid var(--border); background: var(--surface-3); color: var(--text-primary); font-size: var(--fs-sm); font-family: inherit; }
+.note-input:focus { outline: none; border-color: var(--focus); }
+.note-input::placeholder { color: var(--text-muted); }
+
+.fill-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1); min-height: var(--tap-sm); padding: 0 var(--sp-3); border-radius: var(--r-md); border: var(--bw) solid var(--border-strong); background: transparent; color: var(--text-secondary); font-family: inherit; font-size: var(--fs-sm); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.fill-btn:hover { background: var(--surface-3); color: var(--text-primary); border-color: var(--text-muted); }
+.btn { min-height: var(--tap); border-radius: var(--r-pill); font-family: inherit; font-size: var(--fs-md); cursor: pointer; transition: background 0.15s, color 0.15s, opacity 0.15s; border: none; }
+.btn-primary { padding: var(--sp-3) var(--sp-5); background: var(--accent); color: var(--surface-0); font-weight: 600; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary { padding: var(--sp-3) var(--sp-4); background: transparent; color: var(--text-secondary); font-weight: 400; }
+.btn-secondary:hover { background: var(--surface-2); color: var(--text-primary); }
+.btn-danger { color: var(--danger); }
+
+.stepper { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); }
+.stepper-unit { font-size: var(--fs-sm); color: var(--text-muted); flex-shrink: 0; }
+.step-btn { width: var(--tap-sm); height: var(--tap-sm); border-radius: 50%; border: var(--bw) solid var(--border-strong); background: var(--surface-3); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s, border-color 0.15s, transform 0.1s; }
+.step-btn:hover { background: var(--surface-0); border-color: var(--focus); }
+.step-btn:active { transform: scale(0.92); }
+.stepper input { border: var(--bw) solid var(--border-strong); border-radius: var(--r-md); width: 100%; max-width: 128px; box-sizing: border-box; height: var(--tap); padding: 0 var(--sp-3); text-align: right; font-size: var(--fs-lg); font-weight: 500; background: var(--surface-3); color: var(--text-primary); font-variant-numeric: tabular-nums; transition: border-color 0.15s; }
+.stepper input:focus { outline: none; border-color: var(--focus); }
+input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+.icon-btn { width: var(--tap); height: var(--tap); padding: 0; border-radius: 50%; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; flex-shrink: 0; }
+.icon-btn:hover { background: var(--surface-3); color: var(--text-primary); }
+#tracker-root button:active, .btn:active, .journey-dot-outer:active { transform: scale(0.97); }
+#tracker-root button, .btn { transition: transform 0.08s ease, background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s; }
+#tracker-root :focus-visible, #app-modal-overlay :focus-visible, #settings-overlay :focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.warn-text { font-size: var(--fs-xs); color: var(--warn-text); margin-top: var(--sp-2); display: flex; align-items: flex-start; gap: var(--sp-1); }
+
+.hero-card { border-radius: var(--r-xl); padding: var(--sp-5); margin-bottom: var(--sp-5); background: var(--surface-1); border: var(--bw) solid var(--border); box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.hero-card::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, var(--accent-glow), transparent 62%); }
+.hero-card.is-over::before { background: radial-gradient(120% 80% at 50% 0%, rgba(255,122,84,0.08), transparent 62%); }
+.hero-card > * { position: relative; }
+
+.row-item { border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-2); background: var(--surface-1); border: var(--bw) solid var(--border); border-left: var(--bw-accent) solid var(--border); cursor: pointer; }
+.progress-track { width: 56px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; flex-shrink: 0; }
+.progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease, background 0.3s; }
+
+.legend { display: flex; gap: var(--sp-4); flex-wrap: wrap; font-size: var(--fs-sm); color: var(--text-secondary); margin-top: var(--sp-3); }
+.legend span { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.save-status { font-size: var(--fs-xs); color: var(--text-muted); }
+.delta { font-size: var(--fs-xs); margin-top: var(--sp-1); }
+.delta-good { color: var(--accent-text); }
+.delta-bad { color: var(--warn-text); }
+.dashboard-line { font-size: var(--fs-sm); color: var(--text-secondary); line-height: var(--lh-caption); }
+
+.menu-wrap { position: relative; }
+.menu-btn { width: var(--tap); height: var(--tap); padding: 0; border-radius: 50%; border: var(--bw) solid var(--border); background: var(--surface-2); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.menu-btn:hover { background: var(--surface-3); }
+.menu-panel { position: absolute; right: 0; top: 48px; background: var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-md); padding: var(--sp-2); min-width: 200px; box-shadow: var(--shadow-lg); z-index: 20; display: none; backdrop-filter: blur(20px); }
+.menu-panel.open { display: block; }
+[data-icon] { display: inline-flex; align-items: center; flex-shrink: 0; }
+.menu-item { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); font-size: var(--fs-md); border-radius: var(--r-sm); cursor: pointer; color: var(--text-primary); background: none; border: none; width: 100%; text-align: left; }
+.menu-item:hover { background: var(--surface-3); }
+
+.mandatory-row { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.mandatory-row input[type=text] { flex: 1; min-width: 0; }
+.mandatory-row input[type=number] { width: 96px; text-align: right; flex-shrink: 0; }
+.settings-input { box-sizing: border-box; padding: var(--sp-3); border-radius: var(--r-md); border: var(--bw) solid var(--border-strong); background: var(--surface-3); color: var(--text-primary); font-size: var(--fs-lg); font-family: inherit; height: var(--tap); }
+.settings-input:focus { outline: none; border-color: var(--focus); }
+.settings-label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: var(--sp-2); }
+
+@keyframes flashBg { 0% { background-color: rgba(47,190,147,0.15); } 100% { background-color: transparent; } }
+.flash { animation: flashBg 1.2s ease; }
+@keyframes chartDotPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.55; } }
+.chart-dot-live { animation: chartDotPulse 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+
+@media (max-width: 520px) {
+  #stat-cards { grid-template-columns: 1fr 1fr !important; }
+  .card { padding: var(--sp-4); }
+  .hero-card { padding: var(--sp-4); }
+  #tracker-root { padding-left: max(var(--sp-3), env(safe-area-inset-left)); padding-right: max(var(--sp-3), env(safe-area-inset-right)); }
+  :root { --fs-display: 32px; --fs-h1: 17px; }
+}
+@media (min-width: 900px) {
+  :root { --fs-display: 50px; }
+  .card, .hero-card { padding: var(--sp-6); }
+  #tracker-root { max-width: 780px; }
+}
+@media (max-width: 380px) {
+  #stat-cards { grid-template-columns: 1fr !important; }
+  .card { padding: var(--sp-3); }
+  .hero-card { padding: var(--sp-3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #tracker-root *, #app-modal-overlay *, #settings-overlay * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+
+<div id="tracker-root">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: var(--sp-5);">
+    <div style="display:flex; gap:var(--sp-3); align-items:center; min-width:0;">
+      <svg width="38" height="38" viewBox="0 0 40 40" style="flex-shrink:0;">
+        <circle cx="20" cy="20" r="15" fill="none" stroke="#9089E0" stroke-width="2" opacity="0.65"/>
+        <path d="M20 12v16M15 16.5c0-2 2-3.5 5-3.5s5 1.3 5 3.2c0 4-10 2.3-10 6.3 0 1.9 2 3.2 5 3.2s5-1.5 5-3.5" fill="none" stroke="#9089E0" stroke-width="1.7" stroke-linecap="round" opacity="0.65"/>
+        <circle cx="20" cy="20" r="2" fill="#2FBE93"/>
+      </svg>
+      <div style="min-width:0;">
+        <h1 style="margin: 0 0 var(--sp-1); font-size: var(--fs-h1);" id="header-title">Бюджет</h1>
+        <p style="color: var(--text-secondary); font-size: var(--fs-sm); margin: 0;"><span id="header-sub"></span> <span id="sync-badge" style="color: var(--text-muted); font-size: var(--fs-xs);"></span></p>
+      </div>
+    </div>
+    <div class="menu-wrap">
+      <button class="menu-btn" id="menu-btn" title="Меню" aria-label="Меню трекера" aria-haspopup="true" aria-expanded="false" aria-controls="menu-panel">
+        <span data-icon="dots" data-icon-size="16"></span>
+      </button>
+      <div class="menu-panel" id="menu-panel">
+        <button class="menu-item" id="open-settings"><span data-icon="gear"></span>Налаштування місяця</button>
+        <button class="menu-item" id="reset-month"><span data-icon="reset"></span>Скинути поточний місяць</button>
+        <button class="menu-item" id="export-json"><span data-icon="download"></span>Експорт JSON</button>
+        <button class="menu-item" id="export-csv"><span data-icon="download"></span>Експорт CSV</button>
+        <button class="menu-item" id="import-json"><span data-icon="upload"></span>Імпорт JSON</button>
+        <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+        <div style="padding:var(--sp-2) var(--sp-3); font-size:var(--fs-xs); color:var(--text-muted); border-top: var(--bw) solid var(--border); margin-top:var(--sp-1);"><span id="save-status" class="save-status">Збережено ✓</span></div>
+        <div style="padding:0 var(--sp-3) var(--sp-2); font-size:var(--fs-xs); color:var(--text-muted);" id="sync-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="journey-wrap" style="margin-bottom: var(--sp-5);"></div>
+
+  <div id="hero-wrap"></div>
+
+  <div class="card" style="margin-bottom: var(--sp-5);">
+    <div class="section-label" style="font-size:var(--fs-md); margin-bottom:var(--sp-3);">Прогрес місяця</div>
+    <div id="dashboard-line" class="dashboard-line" style="margin: 0 0 var(--sp-4);"></div>
+    <div id="stat-cards" style="display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--sp-3); margin-bottom: var(--sp-3);"></div>
+    <div id="pace-banner" style="margin-bottom: var(--sp-3);"></div>
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:var(--sp-1);">
+        <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">План vs факт по днях</div>
+      </div>
+      <div id="chart-month"></div>
+      <div class="legend">
+        <span><i style="background:var(--border-strong);"></i>план (наростаючим підсумком)</span>
+        <span><i style="background:var(--accent);"></i>факт (наростаючим підсумком)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label" id="days-toggle" style="cursor:pointer; display:flex; align-items:center; gap:var(--sp-2); font-size:var(--fs-md);">
+    Історія днів цього місяця
+    <span data-icon="chevronDown" data-icon-size="14" id="days-chevron" style="transition: transform 0.25s;"></span>
+  </div>
+  <div id="days-list" style="display:none; margin-bottom: var(--sp-5);"></div>
+
+  <div class="section-label" id="months-toggle" style="cursor:pointer; display:flex; align-items:center; gap:var(--sp-2); font-size:var(--fs-md);">
+    Історія місяців
+    <span data-icon="chevronDown" data-icon-size="14" id="months-chevron" style="transition: transform 0.25s;"></span>
+  </div>
+  <div id="months-list" style="display:none;"></div>
+
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v1 · local storage · зберігається на цьому пристрої/браузері</div>
+</div>
+
+<div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:200; align-items:center; justify-content:center; padding:var(--sp-4);">
+  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:340px; width:100%; padding:var(--sp-5); font-family:'Inter', sans-serif; color:var(--text-primary);">
+    <div id="app-modal-message" style="font-size:var(--fs-md); line-height:1.5; margin-bottom:var(--sp-4);"></div>
+    <div style="display:flex; justify-content:flex-end; gap:var(--sp-2);">
+      <button id="app-modal-cancel" type="button" class="btn btn-secondary">Скасувати</button>
+      <button id="app-modal-ok" type="button" class="btn btn-primary">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="settings-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:200; align-items:center; justify-content:center; padding:var(--sp-4);">
+  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:420px; width:100%; max-height:85vh; overflow:auto; padding:var(--sp-5); font-family:'Inter', sans-serif; color:var(--text-primary);">
+    <h2 id="settings-title" style="font-family:'Fraunces', serif; font-size:var(--fs-lg); font-weight:600; margin:0 0 var(--sp-1);">Налаштування <span id="settings-month-label"></span></h2>
+    <div style="font-size:var(--fs-sm); color:var(--text-secondary); margin-bottom:var(--sp-4);">Бюджет і обов'язкові платежі. Обов'язкові платежі одразу віднімаються з бюджету і не вводяться повторно як денна витрата.</div>
+
+    <div class="settings-label">Бюджет на місяць, $</div>
+    <input id="set-budget" type="number" step="10" class="settings-input" style="width:100%; margin-bottom:var(--sp-4);">
+
+    <div class="settings-label">Курс, ₴ за $1</div>
+    <input id="set-rate" type="number" step="0.1" class="settings-input" style="width:100%; margin-bottom:var(--sp-4);">
+
+    <div class="settings-label">Обов'язкові платежі (₴)</div>
+    <div id="mandatory-list" style="margin-bottom:var(--sp-2);"></div>
+    <div class="mandatory-row">
+      <input id="new-mandatory-label" type="text" placeholder="Напр. Оренда квартири" maxlength="60" class="settings-input" style="flex:1;">
+      <input id="new-mandatory-amount" type="number" step="1" placeholder="₴" class="settings-input">
+      <button id="add-mandatory" type="button" class="icon-btn" title="Додати платіж" aria-label="Додати обов'язковий платіж"><span data-icon="plus"></span></button>
+    </div>
+    <div id="settings-warn"></div>
+
+    <div class="settings-label" style="margin-top:var(--sp-4); padding-top:var(--sp-3); border-top:var(--bw) solid var(--border);">Синхронізація (спільна для всіх місяців)</div>
+    <input id="set-sync-url" type="text" placeholder="URL Google Apps Script (порожньо — вимкнути)" class="settings-input" style="width:100%; margin-bottom:var(--sp-2);">
+    <div style="font-size:var(--fs-xs); color:var(--text-muted); line-height:var(--lh-caption); margin-bottom:var(--sp-2);" id="set-sync-status"></div>
+
+    <div style="display:flex; justify-content:flex-end; gap:var(--sp-2); margin-top:var(--sp-4);">
+      <button id="settings-cancel" type="button" class="btn btn-secondary">Скасувати</button>
+      <button id="settings-save" type="button" class="btn btn-primary">Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var STORAGE_PREFIX = 'fin-tracker:';
+  var MONTH_NOM = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+  var MONTH_GEN = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+  var C_ACCENT = '#2FBE93', C_DANGER = '#FF7A54', C_WARN = '#E8A93C', C_MUTED = '#7C7766', C_PLAN = '#B7B4A6';
+  var DEFAULT_SETTINGS = {
+    budgetUSD: 2200,
+    rateUAH: 44.64,
+    mandatory: [
+      { id: 'rent', label: 'Оренда квартири', amountUAH: 15075 },
+      { id: 'mortgage', label: 'Іпотека', amountUAH: 11000 }
+    ]
+  };
+
+  var ICONS = {
+    check: '<path d="M4 8.5l3 3 5.5-6.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    x: '<path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+    plus: '<path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    minus: '<path d="M3 8h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    reset: '<path d="M3.5 8a4.5 4.5 0 1 1 1.3 3.2M3.5 8V4.3M3.5 8h3.7" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    dots: '<circle cx="3" cy="8" r="1.3" fill="currentColor"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="13" cy="8" r="1.3" fill="currentColor"/>',
+    gear: '<circle cx="8" cy="8" r="2.3" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M8 2.3v1.6M8 12.1v1.6M13.7 8h-1.6M3.9 8H2.3M11.86 4.14l-1.13 1.13M5.27 10.73l-1.13 1.13M11.86 11.86l-1.13-1.13M5.27 5.27L4.14 4.14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+    download: '<path d="M8 2v8m0 0l-3-3m3 3l3-3M3 13h10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    upload: '<path d="M8 14V6m0 0l-3 3m3-3l3 3M3 3h10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    trash: '<path d="M3.5 4.5h9M6.5 4.5V3a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1.5M4.5 4.5l.6 8.2a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.2" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    chevronDown: '<path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    warn: '<path d="M8 2.5l6.5 11.5h-13z" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M8 6.5v3.5M8 12v.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>'
+  };
+  function icon(name, size){ size = size || 14; return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 16 16" style="display:block;">' + (ICONS[name] || '') + '</svg>'; }
+  function hydrateIcons(root){
+    (root || document).querySelectorAll('[data-icon]').forEach(function(el){
+      var name = el.getAttribute('data-icon');
+      var size = el.getAttribute('data-icon-size') || 14;
+      el.innerHTML = icon(name, size);
+    });
+  }
+
+  // ---------- Дата / місяці ----------
+  function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+  function monthKeyOf(d){ return d.getFullYear() + '-' + pad2(d.getMonth() + 1); }
+  function parseMonthKey(key){ var p = key.split('-'); return { y: parseInt(p[0], 10), m: parseInt(p[1], 10) }; }
+  function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); }
+  function monthLabel(key){ var p = parseMonthKey(key); return MONTH_NOM[p.m - 1] + ' ' + p.y; }
+  function dateLabel(y, m, d){ return d + ' ' + MONTH_GEN[m - 1]; }
+
+  var todayObj = new Date();
+  var TODAY_KEY = monthKeyOf(todayObj);
+  var TODAY_DAY = todayObj.getDate();
+
+  // ---------- Сховище: localStorage (миттєвий локальний кеш) + опційна синхронізація
+  // через Google Apps Script Web App (Google Таблиця як спільна база для всіх пристроїв). ----------
+  function localGet(key){ try { return localStorage.getItem(STORAGE_PREFIX + key); } catch(e){ return null; } }
+  function localSet(key, value){ try { localStorage.setItem(STORAGE_PREFIX + key, value); } catch(e) {} }
+  function localRemove(key){ try { localStorage.removeItem(STORAGE_PREFIX + key); } catch(e) {} }
+
+  function showSaveStatus(text, isError){
+    var el = document.getElementById('save-status');
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = isError ? C_DANGER : 'var(--text-muted)';
+  }
+
+  function getWebAppUrl(){ try { return (localGet('weburl') || '').trim(); } catch(e){ return ''; } }
+  function setWebAppUrl(url){ localSet('weburl', url || ''); }
+  function updateSyncStatusUI(){
+    var text = getWebAppUrl() ? 'Синхронізація: увімкнена (Google Таблиця)' : 'Синхронізація: вимкнена (лише цей браузер)';
+    var el1 = document.getElementById('sync-status'); if (el1) el1.textContent = text;
+    var el2 = document.getElementById('set-sync-status'); if (el2) el2.textContent = text;
+  }
+  function setSyncBadge(text){ var el = document.getElementById('sync-badge'); if (el) el.textContent = text || ''; }
+
+  // Забирає ВСІ ключі одним запитом (action=getall) — не потребує наперед знати
+  // список місяців, Apps Script просто повертає всі рядки з Таблиці.
+  async function remoteFetchAll(url){
+    try {
+      var res = await fetch(url + '?action=getall');
+      var data = await res.json();
+      if (data && data.items && typeof data.items === 'object') return data.items;
+    } catch(e) {}
+    return null;
+  }
+
+  var storage = {
+    async set(key, value){
+      localSet(key, value);
+      var url = getWebAppUrl();
+      if (!url) return true;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // text/plain уникає CORS preflight
+          body: JSON.stringify({ action: 'set', key: key, value: value })
+        });
+        return true;
+      } catch(e) { return false; }
+    }
+  };
+
+  // syncInFlight + editedDuringSync — захист від гонки: якщо дані змінили ПОКИ
+  // фонова синхронізація ще летить, застаріла відповідь не повинна їх перезаписати.
+  var syncInFlight = false;
+  var editedDuringSync = {};
+
+  function loadLastSettings(){
+    try { var raw = localGet('last-settings'); if (raw) return JSON.parse(raw); } catch(e) {}
+    return null;
+  }
+  async function saveLastSettings(s){
+    if (syncInFlight) editedDuringSync['last-settings'] = true;
+    await storage.set('last-settings', JSON.stringify(s));
+  }
+
+  function loadMonth(key){
+    try { var raw = localGet('month:' + key); if (raw) return JSON.parse(raw); } catch(e) {}
+    return null;
+  }
+  async function saveMonthRaw(key, obj){
+    if (syncInFlight) editedDuringSync['month:' + key] = true;
+    showSaveStatus('Збереження…');
+    try {
+      var ok = await storage.set('month:' + key, JSON.stringify(obj));
+      showSaveStatus(ok ? 'Збережено ✓' : 'Збережено локально (хмара недоступна)', !ok);
+    } catch(e) { showSaveStatus('Помилка збереження', true); }
+  }
+
+  var MONTHS = {};
+  function ensureMonth(key){
+    if (MONTHS[key]) return MONTHS[key];
+    var m = loadMonth(key);
+    if (!m){
+      var seed = loadLastSettings() || DEFAULT_SETTINGS;
+      m = {
+        budgetUSD: seed.budgetUSD,
+        rateUAH: seed.rateUAH,
+        mandatory: (seed.mandatory || []).map(function(x){ return { id: x.id, label: x.label, amountUAH: x.amountUAH }; }),
+        days: {},
+        createdAt: new Date().toISOString()
+      };
+      // Лише локальний кеш — НЕ штовхаємо щойно створений порожній місяць у хмару.
+      // Якщо це свіжий пристрій з увімкненою синхронізацією, фонове завантаження
+      // (loadAndSync) ще не встигло підтягнути реальні дані з Google Таблиці;
+      // передчасний POST порожнього місяця міг би перезаписати їх гонкою.
+      localSet('month:' + key, JSON.stringify(m));
+    }
+    if (!m.mandatory) m.mandatory = [];
+    if (!m.days) m.days = {};
+    MONTHS[key] = m;
+    return m;
+  }
+  function saveMonth(key){ saveMonthRaw(key, MONTHS[key]); }
+
+  // Двофазне завантаження: спочатку миттєво малюємо з локального кешу (без мережі),
+  // потім у фоні тягнемо всі ключі з Google Таблиці й домальовуємо, якщо є розбіжності.
+  async function loadAndSync(){
+    updateSyncStatusUI();
+    render();
+    var url = getWebAppUrl();
+    if (!url) return;
+    setSyncBadge('синхронізація…');
+    syncInFlight = true;
+    editedDuringSync = {};
+    var remote = await remoteFetchAll(url);
+    syncInFlight = false;
+    if (!remote){ setSyncBadge('офлайн'); return; }
+    var changed = false;
+    Object.keys(remote).forEach(function(k){
+      if (editedDuringSync[k]) return;
+      var value = remote[k];
+      if (!value) return;
+      if (k === 'last-settings'){ localSet('last-settings', value); changed = true; return; }
+      if (k.indexOf('month:') === 0){
+        try {
+          localSet(k, value);
+          MONTHS[k.slice('month:'.length)] = JSON.parse(value);
+          changed = true;
+        } catch(e) {}
+      }
+    });
+    setSyncBadge('');
+    if (changed) render();
+  }
+
+  // Викликається одразу після того, як користувач ПЕРШИЙ РАЗ вмикає синхронізацію:
+  // спершу підтягуємо все, що вже є у Таблиці (на випадок під'єднання до вже
+  // заповненої іншим пристроєм таблиці), а тоді довантажуємо в хмару все, що
+  // є лише локально на цьому пристрої — щоб історія не губилась в жодний бік.
+  async function pushAllLocalToRemote(){
+    var keys = listAllMonthKeys();
+    var tasks = keys.map(function(k){ return saveMonthRaw(k, ensureMonth(k)); });
+    var ls = loadLastSettings();
+    if (ls) tasks.push(saveLastSettings(ls));
+    try { await Promise.all(tasks); } catch(e) {}
+    updateSyncStatusUI();
+  }
+
+  function listAllMonthKeys(){
+    var keys = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if (k && k.indexOf(STORAGE_PREFIX + 'month:') === 0) keys.push(k.slice((STORAGE_PREFIX + 'month:').length));
+      }
+    } catch(e) {}
+    if (keys.indexOf(TODAY_KEY) === -1) keys.push(TODAY_KEY);
+    keys.sort();
+    return keys;
+  }
+
+  // ---------- Розрахунок бюджету ----------
+  function mandatorySum(m){
+    return (m.mandatory || []).reduce(function(s, x){ return s + (Number(x.amountUAH) || 0); }, 0);
+  }
+  function budgetInfo(m){
+    var mand = mandatorySum(m);
+    var totalUAH = (Number(m.budgetUSD) || 0) * (Number(m.rateUAH) || 1);
+    return { mandatorySum: mand, totalBudgetUAH: totalUAH, discretionaryUAH: totalUAH - mand };
+  }
+  // Базова денна сума розподіляється порівну між усіма днями місяця.
+  // Недовитрата дня переноситься лише на НАСТУПНИЙ день (тимчасовий carry).
+  // Перевитрата дня пропорційно і назавжди знімається з БАЗИ всіх днів, що лишились.
+  function computePlans(key){
+    var m = ensureMonth(key);
+    var p = parseMonthKey(key);
+    var N = daysInMonth(p.y, p.m);
+    var info = budgetInfo(m);
+    var base = info.discretionaryUAH / N;
+    var baseline = new Array(N + 1).fill(base);
+    var plans = new Array(N + 1).fill(0);
+    var carry = 0;
+    for (var d = 1; d <= N; d++){
+      plans[d] = baseline[d] + carry;
+      carry = 0;
+      var entry = m.days[d];
+      if (entry && entry.actual !== undefined && entry.actual !== null && entry.actual !== ''){
+        var actual = Number(entry.actual);
+        var diff = plans[d] - actual;
+        if (diff >= 0){
+          carry = diff;
+        } else {
+          var deficit = -diff;
+          var remaining = N - d;
+          if (remaining > 0){
+            var red = deficit / remaining;
+            for (var k = d + 1; k <= N; k++) baseline[k] -= red;
+          }
+        }
+      }
+    }
+    return { plans: plans, N: N, base: base, info: info };
+  }
+  function actualOf(m, d){
+    var e = m.days[d];
+    if (!e || e.actual === undefined || e.actual === null || e.actual === '') return null;
+    return Number(e.actual);
+  }
+  function lastEnteredDay(m, N){
+    for (var d = N; d >= 1; d--){ if (actualOf(m, d) !== null) return d; }
+    return 0;
+  }
+
+  // ---------- Форматування ----------
+  function fmtUAH(n){ return '₴' + Math.round(n).toLocaleString('uk-UA'); }
+  function fmtUSD(n){ var r = Math.round(n); return (r < 0 ? '-$' : '$') + Math.abs(r).toLocaleString('en-US'); }
+  function fmtSignedUSD(n){ var r = Math.round(n); return (r >= 0 ? '+' : '-') + '$' + Math.abs(r).toLocaleString('en-US'); }
+
+  // ---------- Модальні вікна ----------
+  var modalStack = [];
+  var FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+  function openModal(overlay, opts){
+    opts = opts || {};
+    var restoreTo = document.activeElement;
+    overlay.style.display = 'flex';
+    function focusables(){
+      return Array.prototype.slice.call(overlay.querySelectorAll(FOCUSABLE)).filter(function(el){ return el.offsetParent !== null || el === document.activeElement; });
+    }
+    function onKeydown(e){
+      if (e.key === 'Escape'){ e.preventDefault(); closeModal(overlay); return; }
+      if (e.key !== 'Tab') return;
+      var items = focusables();
+      if (!items.length) return;
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+    var parent = modalStack[modalStack.length - 1];
+    if (parent) document.removeEventListener('keydown', parent.onKeydown, true);
+    document.addEventListener('keydown', onKeydown, true);
+    modalStack.push({ overlay: overlay, onKeydown: onKeydown, restoreTo: restoreTo });
+    setTimeout(function(){
+      var target = opts.focusEl || overlay.querySelector('input:not([type=hidden])') || focusables()[0];
+      if (target) target.focus();
+    }, 50);
+  }
+  function closeModal(overlay){
+    if (document.activeElement && overlay.contains(document.activeElement)) document.activeElement.blur();
+    overlay.style.display = 'none';
+    var idx = -1;
+    for (var i = modalStack.length - 1; i >= 0; i--){ if (modalStack[i].overlay === overlay){ idx = i; break; } }
+    if (idx === -1) return;
+    var entry = modalStack.splice(idx, 1)[0];
+    document.removeEventListener('keydown', entry.onKeydown, true);
+    var parent = modalStack[modalStack.length - 1];
+    if (parent) document.addEventListener('keydown', parent.onKeydown, true);
+    if (entry.restoreTo && typeof entry.restoreTo.focus === 'function' && document.contains(entry.restoreTo)) entry.restoreTo.focus();
+  }
+  function confirmModal(message, onConfirm){
+    var overlay = document.getElementById('app-modal-overlay');
+    document.getElementById('app-modal-message').textContent = message;
+    var okBtn = document.getElementById('app-modal-ok');
+    var cancelBtn = document.getElementById('app-modal-cancel');
+    function cleanup(){ okBtn.onclick = null; cancelBtn.onclick = null; }
+    okBtn.onclick = function(){ cleanup(); closeModal(overlay); onConfirm(); };
+    cancelBtn.onclick = function(){ cleanup(); closeModal(overlay); };
+    openModal(overlay, { focusEl: cancelBtn });
+  }
+  document.getElementById('app-modal-overlay').addEventListener('click', function(e){ if (e.target === this) closeModal(this); });
+
+  // ---------- Меню ----------
+  var $ = function(id){ return document.getElementById(id); };
+  $('menu-btn').onclick = function(e){
+    e.stopPropagation();
+    var open = $('menu-panel').classList.toggle('open');
+    $('menu-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+  document.addEventListener('click', function(){ $('menu-panel').classList.remove('open'); $('menu-btn').setAttribute('aria-expanded', 'false'); });
+
+  $('reset-month').onclick = function(){
+    $('menu-panel').classList.remove('open');
+    confirmModal('Скинути всі витрати за ' + monthLabel(TODAY_KEY) + '? Налаштування бюджету й обов\'язкові платежі залишаться.', function(){
+      MONTHS[TODAY_KEY].days = {};
+      saveMonth(TODAY_KEY);
+      render();
+    });
+  };
+  $('export-json').onclick = function(){
+    $('menu-panel').classList.remove('open');
+    var keys = listAllMonthKeys();
+    var data = { lastSettings: loadLastSettings() || DEFAULT_SETTINGS, months: {} };
+    keys.forEach(function(k){ data.months[k] = ensureMonth(k); });
+    downloadBlob(JSON.stringify(data, null, 2), 'application/json', 'budget-tracker.json');
+  };
+  $('export-csv').onclick = function(){
+    $('menu-panel').classList.remove('open');
+    var keys = listAllMonthKeys();
+    var rows = ['month,day,date,plan_uah,actual_uah,diff_uah,note'];
+    keys.forEach(function(k){
+      var p = parseMonthKey(k);
+      var calc = computePlans(k);
+      var m = ensureMonth(k);
+      for (var d = 1; d <= calc.N; d++){
+        var actual = actualOf(m, d);
+        if (actual === null && !(k === TODAY_KEY && d <= TODAY_DAY)) continue;
+        var plan = calc.plans[d];
+        var note = (m.days[d] && m.days[d].note) ? String(m.days[d].note).replace(/"/g, '""') : '';
+        rows.push([k, d, p.y + '-' + pad2(p.m) + '-' + pad2(d), Math.round(plan), actual === null ? '' : Math.round(actual), actual === null ? '' : Math.round(plan - actual), '"' + note + '"'].join(','));
+      }
+    });
+    downloadBlob(rows.join('\n'), 'text/csv', 'budget-tracker.csv');
+  };
+  function downloadBlob(content, mime, filename){
+    var blob = new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+  $('import-json').onclick = function(){ $('menu-panel').classList.remove('open'); $('import-file-input').click(); };
+  $('import-file-input').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try {
+        var data = JSON.parse(reader.result);
+        if (data.lastSettings) saveLastSettings(data.lastSettings);
+        if (data.months){
+          Object.keys(data.months).forEach(function(k){
+            MONTHS[k] = data.months[k];
+            saveMonthRaw(k, MONTHS[k]);
+          });
+        }
+        render();
+      } catch(err){ confirmModal('Не вдалося прочитати файл: файл пошкоджений або має інший формат.', function(){}); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  // ---------- Налаштування ----------
+  var settingsTargetKey = TODAY_KEY;
+  function openSettings(key){
+    settingsTargetKey = key;
+    var m = ensureMonth(key);
+    $('settings-month-label').textContent = '— ' + monthLabel(key);
+    $('set-budget').value = m.budgetUSD;
+    $('set-rate').value = m.rateUAH;
+    renderMandatoryList(m);
+    updateSettingsWarn(m);
+    $('set-sync-url').value = getWebAppUrl();
+    updateSyncStatusUI();
+    var overlay = $('settings-overlay');
+    openModal(overlay, {});
+  }
+  function renderMandatoryList(m){
+    var wrap = $('mandatory-list');
+    wrap.innerHTML = '';
+    (m.mandatory || []).forEach(function(item){
+      var row = document.createElement('div'); row.className = 'mandatory-row';
+      var labelInput = document.createElement('input'); labelInput.type = 'text'; labelInput.className = 'settings-input'; labelInput.value = item.label;
+      labelInput.oninput = function(){ item.label = labelInput.value; };
+      var amountInput = document.createElement('input'); amountInput.type = 'number'; amountInput.step = '1'; amountInput.className = 'settings-input'; amountInput.value = item.amountUAH;
+      amountInput.oninput = function(){ item.amountUAH = parseFloat(amountInput.value) || 0; updateSettingsWarn(m); };
+      var delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'icon-btn'; delBtn.title = 'Видалити'; delBtn.setAttribute('aria-label', 'Видалити платіж ' + item.label); delBtn.innerHTML = icon('trash', 15);
+      delBtn.onclick = function(){
+        m.mandatory = m.mandatory.filter(function(x){ return x !== item; });
+        renderMandatoryList(m);
+        updateSettingsWarn(m);
+      };
+      row.appendChild(labelInput); row.appendChild(amountInput); row.appendChild(delBtn);
+      wrap.appendChild(row);
+    });
+  }
+  function updateSettingsWarn(m){
+    var el = $('settings-warn');
+    var budget = parseFloat($('set-budget').value) || 0;
+    var rate = parseFloat($('set-rate').value) || 0;
+    var mand = mandatorySum(m);
+    var discretionary = budget * rate - mand;
+    if (discretionary < 0){
+      el.innerHTML = '<div class="warn-text">' + icon('warn', 13) + '<span>Обов\'язкові платежі (' + fmtUAH(mand) + ') перевищують бюджет місяця. На день вийде відʼємна сума.</span></div>';
+    } else {
+      el.innerHTML = '<div style="font-size:var(--fs-xs); color:var(--text-muted); margin-top:var(--sp-2);">Вільно для щоденних витрат: ' + fmtUAH(discretionary) + ' (' + fmtUSD(discretionary / (rate || 1)) + ')</div>';
+    }
+  }
+  $('set-budget').addEventListener('input', function(){ updateSettingsWarn(ensureMonth(settingsTargetKey)); });
+  $('set-rate').addEventListener('input', function(){ updateSettingsWarn(ensureMonth(settingsTargetKey)); });
+  $('add-mandatory').onclick = function(){
+    var m = ensureMonth(settingsTargetKey);
+    var label = $('new-mandatory-label').value.trim();
+    var amount = parseFloat($('new-mandatory-amount').value) || 0;
+    if (!label) { $('new-mandatory-label').focus(); return; }
+    m.mandatory.push({ id: 'm_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), label: label, amountUAH: amount });
+    $('new-mandatory-label').value = ''; $('new-mandatory-amount').value = '';
+    renderMandatoryList(m);
+    updateSettingsWarn(m);
+  };
+  $('settings-cancel').onclick = function(){ closeModal($('settings-overlay')); MONTHS[settingsTargetKey] = loadMonth(settingsTargetKey) || MONTHS[settingsTargetKey]; render(); };
+  $('settings-save').onclick = function(){
+    var m = ensureMonth(settingsTargetKey);
+    m.budgetUSD = parseFloat($('set-budget').value) || 0;
+    m.rateUAH = parseFloat($('set-rate').value) || 1;
+    saveMonth(settingsTargetKey);
+    if (settingsTargetKey === TODAY_KEY){
+      saveLastSettings({ budgetUSD: m.budgetUSD, rateUAH: m.rateUAH, mandatory: m.mandatory });
+    }
+    var newUrl = ($('set-sync-url').value || '').trim();
+    var urlChanged = newUrl !== getWebAppUrl();
+    setWebAppUrl(newUrl);
+    updateSyncStatusUI();
+    closeModal($('settings-overlay'));
+    render();
+    if (urlChanged && newUrl) loadAndSync().then(pushAllLocalToRemote);
+  };
+  $('settings-overlay').addEventListener('click', function(e){ if (e.target === this){ $('settings-cancel').click(); } });
+  $('open-settings').onclick = function(){ $('menu-panel').classList.remove('open'); openSettings(TODAY_KEY); };
+
+  // ---------- Степер ----------
+  function stepper(value, step, unit, onLive, onCommit){
+    var wrap = document.createElement('div'); wrap.className = 'stepper';
+    var minus = document.createElement('button'); minus.className = 'step-btn'; minus.type = 'button'; minus.setAttribute('aria-label', 'Зменшити'); minus.innerHTML = icon('minus', 14);
+    var input = document.createElement('input'); input.type = 'number'; input.step = step; input.inputMode = 'decimal';
+    input.value = (value !== null && value !== undefined) ? value : '';
+    input.onfocus = function(){ input.select(); };
+    var plus = document.createElement('button'); plus.className = 'step-btn'; plus.type = 'button'; plus.setAttribute('aria-label', 'Збільшити'); plus.innerHTML = icon('plus', 14);
+    function commitStep(v){ var rounded = Math.round(v / step) * step; input.value = rounded; onLive(rounded); onCommit(); }
+    minus.onclick = function(){ commitStep((parseFloat(input.value) || 0) - step); };
+    plus.onclick = function(){ commitStep((parseFloat(input.value) || 0) + step); };
+    input.oninput = function(){ onLive(input.value !== '' ? parseFloat(input.value) : null); };
+    input.onblur = function(){ onCommit(); };
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') input.blur(); });
+    wrap.appendChild(minus); wrap.appendChild(input); wrap.appendChild(plus);
+    if (unit){ var u = document.createElement('span'); u.className = 'stepper-unit'; u.textContent = unit; wrap.appendChild(u); }
+    return wrap;
+  }
+
+  function setDayActual(key, d, val){
+    var m = ensureMonth(key);
+    if (!m.days[d]) m.days[d] = {};
+    m.days[d].actual = val;
+    saveMonth(key);
+  }
+  function setDayNote(key, d, val){
+    var m = ensureMonth(key);
+    if (!m.days[d]) m.days[d] = {};
+    m.days[d].note = val;
+    saveMonth(key);
+  }
+
+  function dayMetricRow(key, d, calc){
+    var m = ensureMonth(key);
+    var plan = calc.plans[d];
+    var actual = actualOf(m, d);
+    var note = (m.days[d] && m.days[d].note) || '';
+    var row = document.createElement('div'); row.className = 'metric-row';
+    var accent = document.createElement('div'); accent.className = 'metric-accent';
+    accent.style.background = actual === null ? C_PLAN : (actual <= plan ? C_ACCENT : C_DANGER);
+    row.appendChild(accent);
+    var body = document.createElement('div'); body.className = 'metric-body';
+    var top = document.createElement('div'); top.className = 'metric-top-row';
+    var lbl = document.createElement('span'); lbl.className = 'metric-label'; lbl.textContent = 'Витрачено'; top.appendChild(lbl);
+    var planBtn = document.createElement('button'); planBtn.type = 'button'; planBtn.className = 'plan-note';
+    planBtn.title = 'Підставити план дня';
+    planBtn.textContent = 'план ' + fmtUAH(plan) + ' · підставити';
+    planBtn.onclick = function(){ setDayActual(key, d, Math.round(plan)); render(); };
+    top.appendChild(planBtn);
+    body.appendChild(top);
+
+    var inputRow = document.createElement('div'); inputRow.className = 'metric-input-row';
+    var step = stepper(actual, 20, '₴',
+      function(v){ setDayActual(key, d, v); },
+      function(){ render(); });
+    inputRow.appendChild(step);
+    body.appendChild(inputRow);
+
+    if (actual !== null){
+      var diff = plan - actual;
+      var deltaEl = document.createElement('div'); deltaEl.className = 'delta ' + (diff >= 0 ? 'delta-good' : 'delta-bad');
+      deltaEl.textContent = (diff >= 0 ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + ' відносно плану дня';
+      body.appendChild(deltaEl);
+    }
+
+    var noteInput = document.createElement('input'); noteInput.type = 'text'; noteInput.className = 'note-input'; noteInput.placeholder = 'Нотатка (необов\'язково)'; noteInput.maxLength = 140; noteInput.value = note;
+    noteInput.onblur = function(){ setDayNote(key, d, noteInput.value); };
+    noteInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') noteInput.blur(); });
+    body.appendChild(noteInput);
+
+    row.appendChild(body);
+    return row;
+  }
+
+  // ---------- Journey strip ----------
+  function renderJourney(){
+    var calc = computePlans(TODAY_KEY);
+    var m = ensureMonth(TODAY_KEY);
+    var wrap = $('journey-wrap');
+    wrap.innerHTML = '';
+    var strip = document.createElement('div'); strip.className = 'journey-strip';
+    for (var d = 1; d <= calc.N; d++){
+      (function(d){
+        var isFuture = d > TODAY_DAY;
+        var isToday = d === TODAY_DAY;
+        var actual = actualOf(m, d);
+        var cell = document.createElement('button'); cell.type = 'button'; cell.className = 'journey-cell' + (isToday ? ' today' : '');
+        cell.setAttribute('aria-label', dateLabel(parseMonthKey(TODAY_KEY).y, parseMonthKey(TODAY_KEY).m, d) + (actual !== null ? (', витрачено ' + fmtUAH(actual)) : ''));
+        var outer = document.createElement('div'); outer.className = 'journey-dot-outer' + (isFuture ? ' is-future' : '') + (isToday ? ' is-today' : '');
+        var color = isFuture ? 'var(--surface-2)' : (actual === null ? 'var(--surface-3)' : (actual <= calc.plans[d] ? C_ACCENT : C_DANGER));
+        outer.style.background = color;
+        var inner = document.createElement('div'); inner.className = 'journey-dot-inner'; inner.textContent = d;
+        outer.appendChild(inner);
+        cell.appendChild(outer);
+        var numLbl = document.createElement('div'); numLbl.className = 'journey-num'; numLbl.textContent = isToday ? 'сьогодні' : '';
+        cell.appendChild(numLbl);
+        if (!isFuture && !isToday){
+          cell.onclick = function(){
+            var row = document.getElementById('day-row-' + d);
+            $('days-list').style.display = 'block'; $('days-chevron').style.transform = 'rotate(180deg)';
+            if (row){ row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.add('flash'); setTimeout(function(){ row.classList.remove('flash'); }, 1200); }
+          };
+        }
+        strip.appendChild(cell);
+      })(d);
+    }
+    wrap.appendChild(strip);
+  }
+
+  // ---------- Hero card (сьогодні) ----------
+  var prevOverBudget = null;
+  function cumulative(key, uptoDay){
+    var m = ensureMonth(key);
+    var calc = computePlans(key);
+    var sumPlan = 0, sumActual = 0, hasActual = false;
+    for (var d = 1; d <= uptoDay; d++){
+      sumPlan += calc.plans[d];
+      var a = actualOf(m, d);
+      if (a !== null){ sumActual += a; hasActual = true; }
+    }
+    return { sumPlan: sumPlan, sumActual: sumActual, hasActual: hasActual, calc: calc };
+  }
+  function renderHero(){
+    var calc = computePlans(TODAY_KEY);
+    var m = ensureMonth(TODAY_KEY);
+    var plan = calc.plans[TODAY_DAY];
+    var actual = actualOf(m, TODAY_DAY);
+    var cum = cumulative(TODAY_KEY, TODAY_DAY);
+    var isOver = actual !== null && actual > plan;
+    var wrap = $('hero-wrap');
+    wrap.innerHTML = '';
+    var card = document.createElement('div');
+    card.className = 'hero-card' + (isOver ? ' is-over' : '');
+    var header = document.createElement('div');
+    header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--sp-1);';
+    header.innerHTML = '<div style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;"><span class="today-pill">Сьогодні</span><strong style="font-size:var(--fs-lg);">' + dateLabel(parseMonthKey(TODAY_KEY).y, parseMonthKey(TODAY_KEY).m, TODAY_DAY) + '</strong><span style="color:var(--text-secondary); font-size:var(--fs-sm);">День ' + TODAY_DAY + ' з ' + calc.N + '</span></div>';
+    var resetBtn = document.createElement('button'); resetBtn.className = 'icon-btn'; resetBtn.title = 'Скинути сьогодні'; resetBtn.setAttribute('aria-label', 'Скинути витрату сьогодні'); resetBtn.innerHTML = icon('reset', 15);
+    resetBtn.onclick = function(){
+      confirmModal('Скинути введену витрату за сьогодні?', function(){
+        var mm = ensureMonth(TODAY_KEY);
+        delete mm.days[TODAY_DAY];
+        saveMonth(TODAY_KEY);
+        render();
+      });
+    };
+    header.appendChild(resetBtn);
+    card.appendChild(header);
+
+    var planRow = document.createElement('div');
+    planRow.style.cssText = 'display:flex; align-items:baseline; gap:var(--sp-3); margin: var(--sp-2) 0 var(--sp-4); flex-wrap:wrap;';
+    var num = document.createElement('span'); num.className = 'hero-num' + (isOver ? '' : '');
+    num.style.cssText = 'font-size:var(--fs-display); color:' + (isOver ? C_DANGER : 'var(--text-primary)') + ';';
+    num.textContent = fmtUAH(plan);
+    planRow.appendChild(num);
+    var sub = document.createElement('span'); sub.style.cssText = 'font-size:var(--fs-sm); color:var(--text-secondary);';
+    sub.textContent = 'план на сьогодні · ' + fmtUSD(plan / m.rateUAH);
+    planRow.appendChild(sub);
+    card.appendChild(planRow);
+
+    var badgeWrap = document.createElement('div'); badgeWrap.style.cssText = 'margin-bottom: var(--sp-4);';
+    var behind = cum.sumActual > cum.sumPlan * 1.03;
+    var ahead = cum.sumActual < cum.sumPlan * 0.9;
+    var badgeClass = behind ? 'badge-behind' : 'badge-ok';
+    var badgeText = behind ? 'позаду графіка' : (ahead ? 'випереджаєш графік' : 'у графіку');
+    badgeWrap.innerHTML = '<span class="badge ' + badgeClass + '">' + badgeText + '</span>';
+    card.appendChild(badgeWrap);
+
+    card.appendChild(dayMetricRow(TODAY_KEY, TODAY_DAY, calc));
+
+    var mandNote = document.createElement('div');
+    mandNote.style.cssText = 'font-size:var(--fs-xs); color:var(--text-muted); margin-top:var(--sp-3);';
+    mandNote.textContent = 'Обов\'язкові платежі цього місяця: ' + fmtUAH(calc.info.mandatorySum) + ' (' + fmtUSD(calc.info.mandatorySum / m.rateUAH) + ') — уже враховані в бюджеті, вводити їх у витрати не треба.';
+    card.appendChild(mandNote);
+
+    var wasCelebrated = prevOverBudget === true && !isOver && actual !== null;
+    if (wasCelebrated) card.classList.add('flash');
+    prevOverBudget = isOver;
+
+    wrap.appendChild(card);
+  }
+
+  // ---------- Прогрес / stat cards ----------
+  function statCard(label, valueHtml, subLabel, badgeText, badgeClass){
+    var badge = badgeText ? '<span class="badge ' + badgeClass + '" style="margin-top:var(--sp-1);">' + badgeText + '</span>' : '';
+    return '<div class="card stat-card" style="padding: var(--sp-4); border-radius:var(--r-lg);">' +
+      '<div class="stat-card-top"><div style="font-size: var(--fs-xs); color: var(--text-secondary);">' + label + '</div>' + badge + '</div>' +
+      '<div class="hero-num" style="font-size: 21px; line-height: 1.15;">' + valueHtml + '</div>' +
+      '<div style="font-size: var(--fs-xs); color: var(--text-secondary); margin-top: var(--sp-1);">' + subLabel + '</div></div>';
+  }
+  function renderProgress(){
+    var calc = computePlans(TODAY_KEY);
+    var m = ensureMonth(TODAY_KEY);
+    var cum = cumulative(TODAY_KEY, TODAY_DAY);
+    var remaining = calc.info.discretionaryUAH - cum.sumActual;
+    var totalSoFarUSD = (calc.info.mandatorySum + cum.sumActual) / m.rateUAH;
+    var expectedByNowUSD = m.budgetUSD * (TODAY_DAY / calc.N);
+    var behind = totalSoFarUSD > expectedByNowUSD * 1.05;
+    var ahead = totalSoFarUSD < expectedByNowUSD * 0.9;
+
+    $('dashboard-line').innerHTML = monthLabel(TODAY_KEY) + ' · день ' + TODAY_DAY + ' з ' + calc.N +
+      ' · база ' + fmtUAH(calc.base) + '/день · обов\'язкові ' + fmtUAH(calc.info.mandatorySum) + ' (' + fmtUSD(calc.info.mandatorySum / m.rateUAH) + ')';
+
+    $('stat-cards').innerHTML =
+      statCard('Витрачено (день.)', fmtUAH(cum.sumActual), 'з ' + fmtUAH(calc.info.discretionaryUAH) + ' на місяць', null, null) +
+      statCard('Залишилось', fmtUAH(remaining), 'на ' + (calc.N - TODAY_DAY) + ' дн.', null, null) +
+      statCard('Разом за місяць', fmtUSD(totalSoFarUSD), 'ціль ' + fmtUSD(m.budgetUSD), behind ? 'позаду' : (ahead ? 'випереджає' : 'у графіку'), behind ? 'badge-behind' : 'badge-ok');
+
+    var banner = $('pace-banner');
+    if (behind){
+      var tomorrowPlan = TODAY_DAY < calc.N ? calc.plans[TODAY_DAY + 1] : calc.plans[TODAY_DAY];
+      banner.innerHTML = '<div class="card" style="border-left: var(--bw-accent) solid ' + C_WARN + '; border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4);">' +
+        '<div style="font-size: var(--fs-md); font-weight: 500; margin-bottom: var(--sp-1);">Темп відстає від бюджету $' + m.budgetUSD + '</div>' +
+        '<div style="font-size:var(--fs-sm); color:var(--text-secondary);">Новий орієнтир на завтра: ' + fmtUAH(tomorrowPlan) + '/день — трекер вже перерахував це, зменшивши план решти днів.</div></div>';
+    } else if (ahead && cum.hasActual){
+      banner.innerHTML = '<div class="card" style="border-left: var(--bw-accent) solid ' + C_ACCENT + '; border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4);">' +
+        '<div style="font-size: var(--fs-md); font-weight: 500;">🎉 Випереджаєш бюджет $' + m.budgetUSD + '</div></div>';
+    } else {
+      banner.innerHTML = '';
+    }
+
+    renderChart(calc, m);
+  }
+
+  function renderChart(calc, m){
+    var el = $('chart-month');
+    var N = calc.N;
+    var w = 620, h = 180, padL = 46, padR = 16, padT = 16, padB = 24;
+    var planCum = [0], actCum = [0], lastActIdx = 0;
+    var pc = 0, ac = 0;
+    for (var d = 1; d <= N; d++){
+      pc += calc.plans[d]; planCum.push(pc);
+      var a = actualOf(m, d);
+      if (a !== null){ ac += a; lastActIdx = d; }
+      actCum.push(ac);
+    }
+    var maxY = Math.max(planCum[N], actCum[lastActIdx], calc.info.discretionaryUAH) * 1.08 || 1;
+    var minY = 0;
+    var x = function(i){ return padL + (w - padL - padR) * i / N; };
+    var y = function(v){ return padT + (h - padT - padB) * (maxY - v) / (maxY - minY || 1); };
+    var gridColor = 'var(--border)', mutedColor = 'var(--text-muted)', ringColor = 'var(--surface-1)';
+    var grid = '';
+    var steps = 4;
+    for (var s = 0; s <= steps; s++){
+      var v = maxY * s / steps;
+      grid += '<line x1="' + padL + '" y1="' + y(v) + '" x2="' + (w - padR) + '" y2="' + y(v) + '" stroke="' + gridColor + '" stroke-width="1" opacity="0.6" />';
+      grid += '<text x="' + (padL - 8) + '" y="' + (y(v) + 3) + '" text-anchor="end" font-size="9.5" fill="' + mutedColor + '">' + Math.round(v / 1000) + 'к</text>';
+    }
+    var planPath = ''; for (var i = 0; i <= N; i++) planPath += (i === 0 ? 'M' : 'L') + x(i) + ',' + y(planCum[i]) + ' ';
+    var actPath = ''; for (var j = 0; j <= lastActIdx; j++) actPath += (j === 0 ? 'M' : 'L') + x(j) + ',' + y(actCum[j]) + ' ';
+    var liveDot = '';
+    if (lastActIdx === TODAY_DAY && lastActIdx > 0){
+      liveDot = '<circle class="chart-dot-live" cx="' + x(lastActIdx) + '" cy="' + y(actCum[lastActIdx]) + '" r="4" fill="' + C_ACCENT + '" stroke="' + ringColor + '" stroke-width="1.5" />';
+    } else if (lastActIdx > 0){
+      liveDot = '<circle cx="' + x(lastActIdx) + '" cy="' + y(actCum[lastActIdx]) + '" r="4" fill="' + C_ACCENT + '" stroke="' + ringColor + '" stroke-width="1.5" />';
+    }
+    var xlabels = '';
+    [1, Math.round(N/4), Math.round(N/2), Math.round(3*N/4), N].forEach(function(i){
+      if (i < 1 || i > N) return;
+      xlabels += '<text x="' + x(i) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="9.5" fill="' + mutedColor + '">' + i + '</text>';
+    });
+    el.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; height:auto; display:block;">' + grid +
+      '<path d="' + planPath + '" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="4,4" stroke-linejoin="round" />' +
+      '<path d="' + actPath + '" fill="none" stroke="' + C_ACCENT + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />' +
+      liveDot + xlabels + '</svg>';
+  }
+
+  // ---------- Історія днів поточного місяця ----------
+  function renderDaysHistory(){
+    var calc = computePlans(TODAY_KEY);
+    var m = ensureMonth(TODAY_KEY);
+    var list = $('days-list');
+    list.innerHTML = '';
+    for (var d = TODAY_DAY - 1; d >= 1; d--){
+      (function(d){
+        var actual = actualOf(m, d);
+        var plan = calc.plans[d];
+        var item = document.createElement('div'); item.className = 'row-item'; item.id = 'day-row-' + d;
+        var color = actual === null ? 'var(--border)' : (actual <= plan ? C_ACCENT : C_DANGER);
+        item.style.borderLeftColor = color;
+        var header = document.createElement('div');
+        header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2);';
+        var statusText = actual === null ? 'немає даних' : (actual <= plan ? fmtUAH(plan - actual) + ' заощаджено' : fmtUAH(actual - plan) + ' перевитрата');
+        header.innerHTML = '<div style="min-width:0;"><strong style="font-size:var(--fs-sm);">' + dateLabel(parseMonthKey(TODAY_KEY).y, parseMonthKey(TODAY_KEY).m, d) + '</strong>' +
+          '<span style="color:var(--text-secondary); font-size:var(--fs-xs); margin-left:var(--sp-2);">план ' + fmtUAH(plan) + (actual !== null ? (' · факт ' + fmtUAH(actual)) : '') + '</span></div>' +
+          '<span style="font-size:var(--fs-xs); color:' + color + '; font-weight:500; white-space:nowrap;">' + statusText + '</span>';
+        item.appendChild(header);
+        var body = document.createElement('div'); body.style.cssText = 'margin-top:var(--sp-3); display:none;';
+        body.appendChild(dayMetricRow(TODAY_KEY, d, calc));
+        item.appendChild(body);
+        item.onclick = function(ev){ if (body.contains(ev.target)) return; var open = body.style.display !== 'none'; body.style.display = open ? 'none' : 'block'; };
+        list.appendChild(item);
+      })(d);
+    }
+    if (!list.children.length) list.innerHTML = '<div style="font-size:var(--fs-sm); color:var(--text-muted); padding:var(--sp-3) 0;">Ще немає записів за минулі дні цього місяця.</div>';
+  }
+  $('days-toggle').onclick = function(){
+    var open = $('days-list').style.display !== 'none';
+    $('days-list').style.display = open ? 'none' : 'block';
+    $('days-chevron').style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  };
+
+  // ---------- Історія місяців ----------
+  function monthSummary(key){
+    var calc = computePlans(key);
+    var m = ensureMonth(key);
+    var actualSum = 0, anyData = false;
+    for (var d = 1; d <= calc.N; d++){ var a = actualOf(m, d); if (a !== null){ actualSum += a; anyData = true; } }
+    var totalUSD = (calc.info.mandatorySum + actualSum) / m.rateUAH;
+    return { calc: calc, m: m, actualSum: actualSum, anyData: anyData, totalUSD: totalUSD, overUnderUSD: m.budgetUSD - totalUSD };
+  }
+  function renderMonthsHistory(){
+    var list = $('months-list');
+    list.innerHTML = '';
+    var keys = listAllMonthKeys().filter(function(k){ return k !== TODAY_KEY; }).sort().reverse();
+    keys.forEach(function(key){
+      var s = monthSummary(key);
+      var pct = Math.max(0, Math.min(100, Math.round((s.totalUSD / (s.m.budgetUSD || 1)) * 100)));
+      var over = s.totalUSD > s.m.budgetUSD;
+      var color = over ? C_DANGER : C_ACCENT;
+      var item = document.createElement('div'); item.className = 'row-item';
+      item.style.borderLeftColor = color;
+      var header = document.createElement('div');
+      header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2);';
+      header.innerHTML = '<div><strong style="font-size:var(--fs-sm);">' + monthLabel(key) + '</strong>' +
+        '<span style="color:var(--text-secondary); font-size:var(--fs-xs); margin-left:var(--sp-2);">' + fmtUSD(s.totalUSD) + ' з ' + fmtUSD(s.m.budgetUSD) + '</span></div>' +
+        '<div style="display:flex; align-items:center; gap:var(--sp-2);"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%; background:' + color + ';"></div></div>' +
+        '<span style="font-size:var(--fs-xs); color:' + color + '; font-weight:500; min-width:56px; text-align:right;">' + (over ? fmtSignedUSD(-s.overUnderUSD) : fmtSignedUSD(s.overUnderUSD)) + '</span></div>';
+      item.appendChild(header);
+      var body = document.createElement('div'); body.style.cssText = 'margin-top:var(--sp-3); display:none;';
+      var openBody = false;
+      item.onclick = function(ev){
+        if (body.contains(ev.target)) return;
+        openBody = !openBody;
+        body.style.display = openBody ? 'block' : 'none';
+        if (openBody && !body.dataset.built){
+          body.dataset.built = '1';
+          for (var d = s.calc.N; d >= 1; d--){
+            (function(d){
+              var a = actualOf(s.m, d);
+              if (a === null) return;
+              body.appendChild(dayMetricRow(key, d, s.calc));
+            })(d);
+          }
+          var settingsLink = document.createElement('button'); settingsLink.type = 'button'; settingsLink.className = 'fill-btn';
+          settingsLink.textContent = 'Налаштування цього місяця';
+          settingsLink.onclick = function(ev2){ ev2.stopPropagation(); openSettings(key); };
+          body.appendChild(settingsLink);
+        }
+      };
+      item.appendChild(body);
+      list.appendChild(item);
+    });
+    if (!list.children.length) list.innerHTML = '<div style="font-size:var(--fs-sm); color:var(--text-muted); padding:var(--sp-3) 0;">Історія з\'явиться, коли мине перший місяць трекінгу.</div>';
+  }
+  $('months-toggle').onclick = function(){
+    var open = $('months-list').style.display !== 'none';
+    $('months-list').style.display = open ? 'none' : 'block';
+    $('months-chevron').style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  };
+
+  // ---------- Render ----------
+  function render(){
+    try {
+      hydrateIcons(document);
+      $('header-sub').textContent = monthLabel(TODAY_KEY);
+      renderJourney();
+      renderHero();
+      renderProgress();
+      renderDaysHistory();
+      renderMonthsHistory();
+    } catch(err){
+      var root = document.getElementById('tracker-root');
+      if (root) root.innerHTML = '<div style="padding:20px; font-family:sans-serif; color:#F0B94D;">Трекер не зміг відобразитись через помилку: ' + (err && err.message ? err.message : String(err)) + '</div>';
+    }
+  }
+
+  ensureMonth(TODAY_KEY);
+  loadAndSync();
+})();
+</script>
+</body>
+</html>
