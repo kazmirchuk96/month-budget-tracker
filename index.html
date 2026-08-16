@@ -301,6 +301,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         <span><i style="background:var(--danger);"></i>факт вище темпу (перевитрата)</span>
       </div>
     </div>
+    <div id="days-balance"></div>
   </div>
 
   <div class="section-label" id="days-toggle" style="cursor:pointer; display:flex; align-items:center; gap:var(--sp-2); font-size:var(--fs-md);">
@@ -1192,6 +1193,34 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     }
 
     renderChart(calc, m);
+    renderDaysBalance(calc, m);
+  }
+
+  // Скільки днів цього місяця вийшло вкластися в план, а скільки — перевитратити,
+  // у кількості та у відсотках від усіх днів, за якими вже є факт.
+  function renderDaysBalance(calc, m){
+    var el = $('days-balance');
+    if (!el) return;
+    var under = 0, over = 0, total = 0;
+    for (var d = 1; d <= calc.N; d++){
+      var a = actualOf(m, d);
+      if (a === null) continue;
+      total++;
+      if (a <= calc.plans[d]) under++; else over++;
+    }
+    if (total === 0){ el.innerHTML = ''; return; }
+    var underPct = Math.round(under / total * 100);
+    var overPct = 100 - underPct;
+    el.innerHTML = '<div class="card" style="padding: var(--sp-4); border-radius:var(--r-lg); margin-top:var(--sp-3);">' +
+      '<div style="font-size:var(--fs-xs); color:var(--text-secondary); margin-bottom:var(--sp-2);">Баланс днів цього місяця (' + total + ' з даними)</div>' +
+      '<div style="display:flex; height:8px; border-radius:4px; overflow:hidden; margin-bottom:var(--sp-3); background:var(--border);">' +
+        (under > 0 ? '<div style="width:' + underPct + '%; background:' + C_ACCENT + ';"></div>' : '') +
+        (over > 0 ? '<div style="width:' + overPct + '%; background:' + C_DANGER + ';"></div>' : '') +
+      '</div>' +
+      '<div style="display:flex; flex-direction:column; gap:var(--sp-2); font-size:var(--fs-sm);">' +
+        '<div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="color:' + C_ACCENT + '; font-weight:500;">Вклався в план</span><span>' + under + ' з ' + total + ' (' + underPct + '%)</span></div>' +
+        '<div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="color:' + C_DANGER + '; font-weight:500;">Перевитратив</span><span>' + over + ' з ' + total + ' (' + overPct + '%)</span></div>' +
+      '</div></div>';
   }
 
   function renderChart(calc, m){
