@@ -330,7 +330,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v3 · локальне сховище + опційна синхронізація (Google Таблиця)</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v4 · локальне сховище + опційна синхронізація (Google Таблиця)</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:200; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -689,7 +689,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   }
 
   // ---------- Форматування ----------
-  function fmtUAH(n){ return '₴' + Math.round(n).toLocaleString('uk-UA'); }
+  function fmtUAH(n){ var r = Math.round(n); return (r < 0 ? '-₴' : '₴') + Math.abs(r).toLocaleString('uk-UA'); }
   function fmtUSD(n){ var r = Math.round(n); return (r < 0 ? '-$' : '$') + Math.abs(r).toLocaleString('en-US'); }
   function fmtSignedUSD(n){ var r = Math.round(n); return (r >= 0 ? '+' : '-') + '$' + Math.abs(r).toLocaleString('en-US'); }
 
@@ -1036,22 +1036,49 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   // степери в iOS) замість трьох окремих кіл поруч — менше "плаваючих"
   // елементів на екрані при тому самому функціоналі.
   function stepperPill(value, onLive, onCommit){
+    // Обгортка навколо самої "пігулки" — потрібна, щоб докласти кнопку
+    // зміни знаку (мінус/плюс) як окремий елемент поруч, а не всередині
+    // фіксованої за версткою пігулки.
+    var outer = document.createElement('div'); outer.style.cssText = 'display:flex; align-items:center; gap:var(--sp-2); flex:1; min-width:0;';
     var wrap = document.createElement('div'); wrap.className = 'stepper-pill';
     var minus = document.createElement('button'); minus.className = 'pill-step'; minus.type = 'button'; minus.setAttribute('aria-label', 'Зменшити'); minus.innerHTML = icon('minus', 14);
     var div1 = document.createElement('div'); div1.className = 'pill-divider';
+    // type="number" + inputMode="numeric" — на iOS/Android це показує
+    // цифрову клавіатуру БЕЗ кнопки "мінус" (обмеження мобільних клавіатур,
+    // не наше). Тому від'ємне значення (напр., повернули гроші за покупку)
+    // вводиться через окрему кнопку signBtn нижче, а не набором з клавіатури.
     var input = document.createElement('input'); input.className = 'pill-input'; input.type = 'number'; input.step = '1'; input.inputMode = 'numeric'; input.pattern = '[0-9]*';
     input.value = (value !== null && value !== undefined) ? value : '';
     input.onfocus = function(){ input.select(); };
     var div2 = document.createElement('div'); div2.className = 'pill-divider';
     var plus = document.createElement('button'); plus.className = 'pill-step'; plus.type = 'button'; plus.setAttribute('aria-label', 'Збільшити'); plus.innerHTML = icon('plus', 14);
-    function commit(v){ var rounded = Math.round(v); input.value = rounded; onLive(rounded); onCommit(); }
+    function commit(v){ var rounded = Math.round(v); input.value = rounded; onLive(rounded); onCommit(); updateSignBtn(); }
     minus.onclick = function(){ var cur = parseFloat(input.value) || 0; commit(cur - dynamicStep(cur)); };
     plus.onclick = function(){ var cur = parseFloat(input.value) || 0; commit(cur + dynamicStep(cur)); };
-    input.oninput = function(){ onLive(input.value !== '' ? parseFloat(input.value) : null); };
+    input.oninput = function(){ onLive(input.value !== '' ? parseFloat(input.value) : null); updateSignBtn(); };
     input.onblur = function(){ onCommit(); };
     input.addEventListener('keydown', function(e){ if (e.key === 'Enter') input.blur(); });
     wrap.appendChild(minus); wrap.appendChild(div1); wrap.appendChild(input); wrap.appendChild(div2); wrap.appendChild(plus);
-    return wrap;
+    outer.appendChild(wrap);
+
+    // Перемикач знаку — для випадку "повернули гроші за покупку", коли
+    // витрата дня має бути від'ємною. Явний перемикач замість набору
+    // мінуса з клавіатури, якої на мобільних цифрових клавіатурах немає.
+    var signBtn = document.createElement('button'); signBtn.type = 'button';
+    signBtn.style.cssText = 'width:var(--tap); height:var(--tap); flex-shrink:0; border:var(--bw) solid var(--border-strong); border-radius:var(--r-lg); background:transparent; color:var(--text-primary); font-size:var(--fs-md); font-weight:500; cursor:pointer; white-space:nowrap;';
+    signBtn.textContent = '±';
+    signBtn.onclick = function(){ var cur = parseFloat(input.value) || 0; commit(-cur); };
+    function updateSignBtn(){
+      var cur = parseFloat(input.value);
+      var negative = !isNaN(cur) && cur < 0;
+      signBtn.title = negative ? 'Зробити суму додатною' : 'Зробити суму від\'ємною (напр., повернули гроші)';
+      signBtn.setAttribute('aria-label', signBtn.title);
+      signBtn.style.color = negative ? C_DANGER : 'var(--text-primary)';
+      signBtn.style.borderColor = negative ? C_DANGER : 'var(--border-strong)';
+    }
+    updateSignBtn();
+    outer.appendChild(signBtn);
+    return outer;
   }
 
   function setDayActual(key, d, val){
