@@ -1690,19 +1690,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
           body.dataset.built = '1';
           // Компактний список днів (не 31 розгорнута форма одразу) — кожен
           // день сам розгортається в редагування лише по тапу на нього.
-          var any = false;
+          // Показуємо ВСІ дні місяця, а не лише ті, де вже є факт — інакше
+          // день, пропущений під час місяця, стає недоступним для заповнення
+          // назавжди після того, як місяць закрився (так і сталось у звіті
+          // Іллі: кілька днів серпня лишились без даних, а вересень уже
+          // не давав до них доступу).
           for (var d = s.calc.N; d >= 1; d--){
-            (function(d){
-              var a = actualOf(s.m, d);
-              if (a === null) return;
-              any = true;
-              body.appendChild(buildDayRowItem(key, d, s.calc));
-            })(d);
-          }
-          if (!any){
-            var noData = document.createElement('div'); noData.style.cssText = 'font-size:var(--fs-sm); color:var(--text-muted); padding:var(--sp-2) 0;';
-            noData.textContent = 'Немає записів за цей місяць.';
-            body.appendChild(noData);
+            body.appendChild(buildDayRowItem(key, d, s.calc));
           }
           var settingsLink = document.createElement('button'); settingsLink.type = 'button'; settingsLink.className = 'fill-btn';
           settingsLink.textContent = 'Налаштування цього місяця';
