@@ -338,7 +338,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v7 · 44px тап-ціль для пунктів меню</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v8 · прогноз кінця місяця за поточним темпом</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1231,6 +1231,25 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     }
     return { sumPlan: sumPlan, sumActual: sumActual, hasActual: hasActual, enteredDays: enteredDays, calc: calc };
   }
+  // Прогноз кінця місяця: єдине число застосунку, що дивиться ВПЕРЕД, а не
+  // констатує поточний стан. Не чіпає computePlans() — лише проєктує вже
+  // пораховані дані: середні фактичні витрати за останні (до 7) введені дні
+  // × дні, що лишились, плюс уже витрачене й обов'язкові платежі.
+  var FORECAST_WINDOW = 7;
+  function computeForecast(calc, m){
+    var cum = cumulative(TODAY_KEY, TODAY_DAY);
+    if (cum.enteredDays < PACE_MIN_DAYS) return null; // темп ще занадто шумний
+    var sum = 0, count = 0;
+    for (var d = TODAY_DAY; d >= 1 && count < FORECAST_WINDOW; d--){
+      var a = actualOf(m, d);
+      if (a !== null){ sum += a; count++; }
+    }
+    var avgPerDayUAH = count ? sum / count : 0;
+    var remainingDays = calc.N - TODAY_DAY;
+    var projectedRestUAH = avgPerDayUAH * remainingDays;
+    var totalUSD = (calc.info.mandatorySum + cum.sumActual + projectedRestUAH) / m.rateUAH;
+    return { totalUSD: totalUSD, avgPerDayUAH: avgPerDayUAH, windowDays: count, overUnderUSD: m.budgetUSD - totalUSD };
+  }
   // Скільки днів поспіль (закінчуючи вчора, або сьогодні — якщо вже введено
   // й у межах плану) вдалося вкластися в план. Перерва в даних (день без
   // введеного факту) обриває серію, як і сам факт перевитрати.
@@ -1405,12 +1424,21 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     };
     line.appendChild(infoBtn);
 
+    // Прогноз — відповідає на "якщо продовжу так само, чим закінчиться
+    // місяць" (єдине з 5 питань 5-секундного тесту головного екрана, на яке
+    // раніше не було відповіді ніде в інтерфейсі). До PACE_MIN_DAYS введених
+    // днів картка не рендериться зовсім — тим самим правилом, що й бейдж
+    // темпу, щоб не давати прогноз на шумних даних.
+    var forecast = computeForecast(calc, m);
     $('stat-cards').innerHTML =
       statCard('Витрачено (день.)', cum.hasActual ? fmtUAH(cum.sumActual) : '—', 'з ' + fmtUAH(calc.info.discretionaryUAH) + ' на місяць', null, null) +
       statCard('Залишилось', fmtUAH(remaining), 'на ' + (calc.N - TODAY_DAY) + ' дн.', null, null) +
       statCard('За місяць, $', fmtUSD(totalSoFarUSD), 'ціль ' + fmtUSD(m.budgetUSD),
         enoughData ? (behind ? 'позаду' : (ahead ? 'випереджає' : 'у графіку')) : null,
-        enoughData ? (behind ? 'badge-behind' : 'badge-ok') : null);
+        enoughData ? (behind ? 'badge-behind' : 'badge-ok') : null) +
+      (forecast ? statCard('Прогноз на кінець', fmtUSD(forecast.totalUSD), 'ціль ' + fmtUSD(m.budgetUSD) + ' · темп ' + forecast.windowDays + ' дн.',
+        forecast.overUnderUSD >= 0 ? 'вкладешся' : 'перевитрата',
+        forecast.overUnderUSD >= 0 ? 'badge-ok' : 'badge-behind') : '');
 
     var banner = $('pace-banner');
     if (behind){
