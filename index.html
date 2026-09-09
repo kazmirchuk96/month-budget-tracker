@@ -167,6 +167,7 @@
 
 .fill-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1); min-height: var(--tap-sm); padding: 0 var(--sp-3); border-radius: var(--r-md); border: var(--bw) solid var(--border-strong); background: transparent; color: var(--text-secondary); font-family: inherit; font-size: var(--fs-sm); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 .fill-btn:hover { background: var(--surface-3); color: var(--text-primary); border-color: var(--text-muted); }
+.fill-btn:disabled { opacity: 0.5; cursor: default; }
 .btn { min-height: var(--tap); border-radius: var(--r-pill); font-family: inherit; font-size: var(--fs-md); cursor: pointer; transition: background 0.15s, color 0.15s, opacity 0.15s; border: none; }
 .btn-primary { padding: var(--sp-3) var(--sp-5); background: var(--accent); color: var(--surface-0); font-weight: 600; }
 .btn-primary:hover { opacity: 0.88; }
@@ -349,7 +350,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v16 · "% місяця · % бюджету" одним рядком</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v17 · кнопка НБУ блокується на час запиту</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -915,7 +916,16 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   // Якщо запит не пройшов (немає мережі, CORS, чи API недоступне) — просто
   // показуємо повідомлення й не чіпаємо поле; це не ламає ручне введення курсу.
   $('fetch-nbu-rate').onclick = async function(){
+    var btn = $('fetch-nbu-rate');
     var statusEl = $('nbu-rate-status');
+    // Кнопка раніше лишалась активною на весь час запиту — подвійний тап
+    // на повільній мережі міг запустити два паралельні fetch. disabled на
+    // час запиту не шкодить (запит зазвичай <1с), але прибирає й цей
+    // дрібний ризик, і невизначеність "чи спрацював тап узагалі".
+    if (btn.disabled) return;
+    btn.disabled = true;
+    var originalText = btn.textContent;
+    btn.textContent = '…';
     statusEl.textContent = 'Завантаження курсу з НБУ…';
     statusEl.style.color = 'var(--text-muted)';
     try {
@@ -930,6 +940,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     } catch(e){
       statusEl.textContent = 'Не вдалося отримати курс з НБУ (немає з\'єднання або сервіс недоступний). Введи курс вручну.';
       statusEl.style.color = C_DANGER;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
     }
   };
 
