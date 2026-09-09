@@ -334,10 +334,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v5 · виправлено невидимий текст кнопки підтвердження</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v6 · підтвердження на видалення обов'язкового платежу</div>
 </div>
 
-<div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:200; align-items:center; justify-content:center; padding:var(--sp-4);">
+<div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
   <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:340px; width:100%; padding:var(--sp-5); font-family:'Inter', sans-serif; color:var(--text-primary);">
     <div id="app-modal-message" style="font-size:var(--fs-md); line-height:1.5; margin-bottom:var(--sp-4);"></div>
     <div style="display:flex; justify-content:flex-end; gap:var(--sp-2);">
@@ -921,9 +921,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       amountInput.oninput = function(){ item.amountUAH = parseFloat(amountInput.value) || 0; updateSettingsWarn(m); };
       var delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'icon-btn'; delBtn.title = 'Видалити'; delBtn.setAttribute('aria-label', 'Видалити платіж ' + item.label); delBtn.innerHTML = icon('trash', 15);
       delBtn.onclick = function(){
-        m.mandatory = m.mandatory.filter(function(x){ return x !== item; });
-        renderMandatoryList(m);
-        updateSettingsWarn(m);
+        // Єдина деструктивна дія застосунку, яка раніше не мала підтвердження
+        // (на відміну від "Скинути місяць" і імпорту) — один випадковий тап
+        // стирав рядок без сліду й без Undo.
+        confirmModal('Видалити платіж «' + (item.label || 'без назви') + '» (' + fmtUAH(item.amountUAH || 0) + ')?', function(){
+          m.mandatory = m.mandatory.filter(function(x){ return x !== item; });
+          renderMandatoryList(m);
+          updateSettingsWarn(m);
+        }, { okText: 'Видалити', danger: true });
       };
       row.appendChild(labelInput); row.appendChild(amountInput); row.appendChild(delBtn);
       wrap.appendChild(row);
