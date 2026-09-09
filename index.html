@@ -314,7 +314,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     <div id="pace-percent-line" style="font-size:var(--fs-sm); color:var(--text-secondary); margin-bottom: var(--sp-4);"></div>
     <div id="stat-cards" style="display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--sp-3); margin-bottom: var(--sp-3);"></div>
     <div id="pace-banner" style="margin-bottom: var(--sp-3);"></div>
-    <div id="week-checkpoint" style="margin-bottom: var(--sp-3);"></div>
     <div>
       <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:var(--sp-1);">
         <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">Ідеальний темп vs факт по днях</div>
@@ -329,7 +328,18 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         <span><i style="background:var(--danger);"></i>перевитрата</span>
       </div>
     </div>
-    <div id="days-balance"></div>
+    <!-- Тижневий чекпоінт і баланс днів — Рівень 2/3-інформація (регулярна,
+         але не критична щоразу), яка раніше завжди займала прокрутку перед
+         "Історія днів" навіть тому, хто просто хоче глянути план на сьогодні
+         й 3 stat-картки. Тепер за одним collapsible, згорнутим за замовчуванням. -->
+    <div class="section-label" id="month-details-toggle" style="cursor:pointer; display:flex; align-items:center; gap:var(--sp-2); font-size:var(--fs-md); margin-top:var(--sp-4);">
+      Деталі місяця
+      <span data-icon="chevronDown" data-icon-size="14" id="month-details-chevron" style="transition: transform 0.25s;"></span>
+    </div>
+    <div id="month-details" style="display:none; margin-top:var(--sp-3);">
+      <div id="week-checkpoint" style="margin-bottom: var(--sp-3);"></div>
+      <div id="days-balance"></div>
+    </div>
   </div>
 
   <div class="section-label" id="days-toggle" style="cursor:pointer; display:flex; align-items:center; gap:var(--sp-2); font-size:var(--fs-md);">
@@ -350,7 +360,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v18 · підказка на порожньому графіку темпу</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v19 · тижневий чекпоінт і баланс днів під "Деталі місяця"</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1748,6 +1758,11 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var open = $('days-list').style.display !== 'none';
     $('days-list').style.display = open ? 'none' : 'block';
     $('days-chevron').style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  };
+  $('month-details-toggle').onclick = function(){
+    var open = $('month-details').style.display !== 'none';
+    $('month-details').style.display = open ? 'none' : 'block';
+    $('month-details-chevron').style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
   };
 
   // ---------- Огляд року ----------
