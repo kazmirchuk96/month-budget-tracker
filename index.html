@@ -300,6 +300,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         <input type="file" id="import-file-input" accept="application/json" style="display:none;">
         <div style="padding:var(--sp-2) var(--sp-3); font-size:var(--fs-xs); color:var(--text-muted); border-top: var(--bw) solid var(--border); margin-top:var(--sp-1);"><span id="save-status" class="save-status">Збережено ✓</span></div>
         <div style="padding:0 var(--sp-3) var(--sp-2); font-size:var(--fs-xs); color:var(--text-muted);" id="sync-status"></div>
+        <div style="padding:0 var(--sp-3) var(--sp-2); font-size:var(--fs-xs); color:var(--text-muted);" id="export-status"></div>
       </div>
     </div>
   </div>
@@ -360,7 +361,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v19 · тижневий чекпоінт і баланс днів під "Деталі місяця"</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v20 · нагадування про останній export у меню</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -859,6 +860,17 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a'); a.href = url; a.download = filename; a.click();
     URL.revokeObjectURL(url);
+    recordLastExport(); // Export — єдиний бекап при вимкненій синхронізації, тож про нього варто нагадувати
+  }
+  function recordLastExport(){
+    localSet('last-export-at', new Date().toISOString());
+    updateExportStatusUI();
+  }
+  function updateExportStatusUI(){
+    var el = document.getElementById('export-status');
+    if (!el) return;
+    var last = localGet('last-export-at');
+    el.textContent = last ? ('Останній експорт: ' + fmtLastSync(last)) : 'Ще не експортовано — це єдиний бекап, якщо синхронізація вимкнена';
   }
   $('import-json').onclick = function(){ $('menu-panel').classList.remove('open'); $('import-file-input').click(); };
   function pluralizeMonths(n){
@@ -1998,6 +2010,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
   ensureMonth(TODAY_KEY);
   loadAndSync();
+  updateExportStatusUI();
 
   if (firstEverLaunch){
     setTimeout(function(){
