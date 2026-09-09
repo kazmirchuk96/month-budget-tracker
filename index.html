@@ -348,7 +348,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v13 · назва й сума платежу в окремих рядках у Налаштуваннях</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v14 · дельта оновлюється наживо під час набору цифр</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1153,19 +1153,31 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var lbl = document.createElement('span'); lbl.className = 'metric-label'; lbl.textContent = 'Витрачено'; top.appendChild(lbl);
     block.appendChild(top);
 
+    // Дельта "заощадив/перевитрата" раніше оновлювалась лише після blur
+    // (повний render()), хоча саме значення вже зберігається в localStorage
+    // на кожен введений символ (setDayActual нижче) — розрив між "дані вже
+    // збережені" й "видимий фідбек про це" привчав тапати кудись "про всяк
+    // випадок". Тепер updateDelta викликається і на кожен oninput.
+    var deltaEl = document.createElement('div'); deltaEl.className = 'delta'; deltaEl.style.display = 'none';
+    function updateDelta(val){
+      if (val === null || val === undefined || val === ''){
+        deltaEl.style.display = 'none';
+        return;
+      }
+      var diff = plan - val;
+      deltaEl.className = 'delta ' + (diff >= 0 ? 'delta-good' : 'delta-bad');
+      deltaEl.textContent = (diff >= 0 ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + ' відносно плану дня';
+      deltaEl.style.display = '';
+    }
+    updateDelta(actual);
+
     var stepperRow = document.createElement('div'); stepperRow.className = 'stepper-row-wrap';
-    var pill = stepperPill(actual, function(v){ setDayActual(key, d, v); }, function(){ render(); });
+    var pill = stepperPill(actual, function(v){ setDayActual(key, d, v); updateDelta(v); }, function(){ render(); });
     stepperRow.appendChild(pill);
     var unitEl = document.createElement('span'); unitEl.className = 'stepper-unit'; unitEl.textContent = '₴';
     stepperRow.appendChild(unitEl);
     block.appendChild(stepperRow);
-
-    if (actual !== null){
-      var diff = plan - actual;
-      var deltaEl = document.createElement('div'); deltaEl.className = 'delta ' + (diff >= 0 ? 'delta-good' : 'delta-bad');
-      deltaEl.textContent = (diff >= 0 ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + ' відносно плану дня';
-      block.appendChild(deltaEl);
-    }
+    block.appendChild(deltaEl);
 
     // "План дня" і "+ нотатка" — тепер рівнозначні кнопки одного стилю в
     // одному рядку (раніше одна була текстовим лінком, інша — кнопкою з
