@@ -350,7 +350,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v17 · кнопка НБУ блокується на час запиту</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v18 · підказка на порожньому графіку темпу</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1724,10 +1724,16 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       if (i < 1 || i > N) return;
       xlabels += '<text x="' + x(i) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="9.5" fill="' + mutedColor + '">' + i + '</text>';
     });
+    // На 1-2 день місяця графік показував лише голу пунктирну лінію без
+    // жодного пояснення — виглядало як недовантажений компонент, а не
+    // навмисний порожній стан.
+    var emptyHint = lastActIdx === 0
+      ? '<text x="' + ((padL + w - padR) / 2) + '" y="' + ((padT + h - padB) / 2) + '" text-anchor="middle" font-size="12" fill="' + mutedColor + '">Почни вносити витрати — тут з\'явиться порівняння з планом</text>'
+      : '';
     el.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; height:auto; display:block;">' + grid +
       '<path d="' + planPath + '" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="4,4" stroke-linejoin="round" />' +
       actSegPaths +
-      liveDot + xlabels + '</svg>';
+      liveDot + xlabels + emptyHint + '</svg>';
   }
 
   // ---------- Історія днів поточного місяця ----------
