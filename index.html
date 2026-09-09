@@ -229,6 +229,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
    пальця зоні (правий верхній кут). */
 .menu-item { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--tap); padding: var(--sp-2) var(--sp-3); font-size: var(--fs-md); border-radius: var(--r-sm); cursor: pointer; color: var(--text-primary); background: none; border: none; width: 100%; text-align: left; }
 .menu-item:hover { background: var(--surface-3); }
+#sync-status:hover, #sync-status:focus-visible { background: var(--surface-3); color: var(--text-primary); border-radius: var(--r-sm); }
 
 /* Назва й сума стоять одна над одною (не поруч у вузькій колонці), бо на
    мобільному екрані назва в 96px-полі поруч із сумою обрізалась до
@@ -299,7 +300,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         <button class="menu-item" id="import-json"><span data-icon="upload"></span>Імпорт JSON</button>
         <input type="file" id="import-file-input" accept="application/json" style="display:none;">
         <div style="padding:var(--sp-2) var(--sp-3); font-size:var(--fs-xs); color:var(--text-muted); border-top: var(--bw) solid var(--border); margin-top:var(--sp-1);"><span id="save-status" class="save-status">Збережено ✓</span></div>
-        <div style="padding:0 var(--sp-3) var(--sp-2); font-size:var(--fs-xs); color:var(--text-muted);" id="sync-status"></div>
+        <!-- Раніше просто статичний текст, що дублювався в Налаштуваннях без
+             жодного переходу туди — тепер клікабельний ярлик до налаштувань
+             синхронізації. -->
+        <div id="sync-status" role="button" tabindex="0" style="padding:0 var(--sp-3) var(--sp-2); font-size:var(--fs-xs); color:var(--text-muted); cursor:pointer;" title="Відкрити налаштування синхронізації"></div>
         <div style="padding:0 var(--sp-3) var(--sp-2); font-size:var(--fs-xs); color:var(--text-muted);" id="export-status"></div>
       </div>
     </div>
@@ -361,7 +365,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v21 · середнє за останні 7 днів під тижневим блоком</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v22 · статус синхронізації клікабельний</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1104,6 +1108,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   };
   $('settings-overlay').addEventListener('click', function(e){ if (e.target === this){ $('settings-cancel').click(); } });
   $('open-settings').onclick = function(){ $('menu-panel').classList.remove('open'); openSettings(TODAY_KEY); };
+  $('sync-status').onclick = function(){ $('menu-panel').classList.remove('open'); openSettings(TODAY_KEY); };
+  $('sync-status').addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('sync-status').click(); } });
 
   // ---------- Степер ----------
   // Крок +/- підлаштовується під суму: дрібні витрати рахуються по ₴10,
