@@ -229,9 +229,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .menu-item { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--tap); padding: var(--sp-2) var(--sp-3); font-size: var(--fs-md); border-radius: var(--r-sm); cursor: pointer; color: var(--text-primary); background: none; border: none; width: 100%; text-align: left; }
 .menu-item:hover { background: var(--surface-3); }
 
-.mandatory-row { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
-.mandatory-row input[type=text] { flex: 1; min-width: 0; text-overflow: ellipsis; }
-.mandatory-row input.amount-input { width: 96px; text-align: right; flex-shrink: 0; }
+/* Назва й сума стоять одна над одною (не поруч у вузькій колонці), бо на
+   мобільному екрані назва в 96px-полі поруч із сумою обрізалась до
+   "Оренда к…" без жодного способу звірити повний текст без тапу в поле. */
+.mandatory-row { display: grid; grid-template-columns: 1fr var(--tap); column-gap: var(--sp-2); row-gap: var(--sp-2); align-items: center; margin-bottom: var(--sp-3); }
+.mandatory-row input[type=text]:not(.amount-input) { grid-column: 1; grid-row: 1; min-width: 0; text-overflow: ellipsis; }
+.mandatory-row .icon-btn { grid-column: 2; grid-row: 1; }
+.mandatory-row input.amount-input { grid-column: 1 / -1; grid-row: 2; width: 100%; text-align: left; }
 .settings-input { box-sizing: border-box; padding: var(--sp-3); border-radius: var(--r-md); border: var(--bw) solid var(--border-strong); background: var(--surface-3); color: var(--text-primary); font-size: var(--fs-lg); font-family: inherit; height: var(--tap); }
 .settings-input:focus { outline: none; border-color: var(--focus); }
 .settings-label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: var(--sp-2); }
@@ -344,7 +348,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v12 · іконка для "На екран Домівки"</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v13 · назва й сума платежу в окремих рядках у Налаштуваннях</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -375,7 +379,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     <div class="settings-label">Обов'язкові платежі (₴)</div>
     <div id="mandatory-list" style="margin-bottom:var(--sp-2);"></div>
     <div class="mandatory-row">
-      <input id="new-mandatory-label" type="text" placeholder="Напр. Оренда квартири" maxlength="60" class="settings-input" style="flex:1;">
+      <input id="new-mandatory-label" type="text" placeholder="Напр. Оренда квартири" maxlength="60" class="settings-input">
       <input id="new-mandatory-amount" type="text" inputmode="decimal" placeholder="₴" class="settings-input amount-input">
       <button id="add-mandatory" type="button" class="icon-btn" title="Додати платіж" aria-label="Додати обов'язковий платіж"><span data-icon="plus"></span></button>
     </div>
