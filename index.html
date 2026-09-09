@@ -341,7 +341,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v10 · постійний час останньої синхронізації</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v11 · згортання довгих серій порожніх днів в історії</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1225,8 +1225,19 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         cell.appendChild(numLbl);
         if (!isFuture && !isToday){
           cell.onclick = function(){
-            var row = document.getElementById('day-row-' + d);
             $('days-list').style.display = 'block'; $('days-chevron').style.transform = 'rotate(180deg)';
+            var row = document.getElementById('day-row-' + d);
+            if (!row){
+              // День міг опинитись усередині згорнутої серії "немає даних" —
+              // знаходимо рядок-зведення, що покриває цей день, і розгортаємо
+              // його тапом, перш ніж шукати day-row- знову.
+              var ranges = document.querySelectorAll('#days-list [data-range-low]');
+              for (var i = 0; i < ranges.length; i++){
+                var lo = Number(ranges[i].getAttribute('data-range-low')), hi = Number(ranges[i].getAttribute('data-range-high'));
+                if (d >= lo && d <= hi){ ranges[i].click(); break; }
+              }
+              row = document.getElementById('day-row-' + d);
+            }
             if (row){ row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.add('flash'); setTimeout(function(){ row.classList.remove('flash'); }, 1200); }
           };
         }
@@ -1381,6 +1392,58 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   // повну форму редагування по тапу. Спільний для "Вчора", "Історії днів"
   // і "Історії місяців" — раніше в місяцях однаково рендерились одразу ВСІ
   // дні як повні форми (до 31 картки поспіль), тепер будуються лише на тап.
+  // Мало заповнений місяць показує до 30 однакових рядків "немає даних"
+  // поспіль — низька інформаційна щільність у списку, який сканують очима
+  // кілька разів на день. Довгі серії (>= EMPTY_RUN_GROUP_MIN поспіль) без
+  // жодного факту згортаємо в один рядок-зведення; дні З даними завжди
+  // лишаються повнорозмірними окремими рядками. Короткі розриви (1-2 дні)
+  // не групуємо — розгортати їх назад тапом дорожче, ніж просто побачити.
+  var EMPTY_RUN_GROUP_MIN = 3;
+  function appendDayHistoryRows(container, key, calc, fromDay, toDay, idFor){
+    var m = ensureMonth(key);
+    var runHigh = null; // найновіший (більший номер) день поточної порожньої серії
+    function flushRun(runLow){
+      if (runHigh === null) return;
+      if (runHigh - runLow + 1 < EMPTY_RUN_GROUP_MIN){
+        for (var dd = runHigh; dd >= runLow; dd--) container.appendChild(buildDayRowItem(key, dd, calc, idFor ? { id: idFor(dd) } : null));
+      } else {
+        container.appendChild(buildEmptyRunRow(key, calc, runLow, runHigh, idFor));
+      }
+      runHigh = null;
+    }
+    for (var d = toDay; d >= fromDay; d--){
+      var a = actualOf(m, d);
+      if (a === null){
+        if (runHigh === null) runHigh = d;
+      } else {
+        flushRun(d + 1);
+        container.appendChild(buildDayRowItem(key, d, calc, idFor ? { id: idFor(d) } : null));
+      }
+    }
+    flushRun(fromDay);
+  }
+  function buildEmptyRunRow(key, calc, lowDay, highDay, idFor){
+    var p = parseMonthKey(key);
+    var item = document.createElement('div'); item.className = 'row-item';
+    item.style.borderLeftColor = 'var(--border)';
+    // data-range-* — щоб клік по крапці дня в journey-стрічці (renderJourney)
+    // міг знайти й розгорнути групу, навіть якщо конкретний day-row- ще не
+    // побудований (див. обробник кліку там).
+    item.setAttribute('data-range-low', lowDay);
+    item.setAttribute('data-range-high', highDay);
+    var count = highDay - lowDay + 1;
+    var header = document.createElement('div');
+    header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2);';
+    header.innerHTML = '<strong style="font-size:var(--fs-sm);">' + lowDay + '–' + dateLabel(p.y, p.m, highDay) + '</strong>' +
+      '<span style="font-size:var(--fs-xs); color:var(--text-muted);">' + count + ' ' + pluralizeDays(count) + ' без даних · тапни, щоб заповнити</span>';
+    item.appendChild(header);
+    item.onclick = function(){
+      var frag = document.createDocumentFragment();
+      for (var dd = highDay; dd >= lowDay; dd--) frag.appendChild(buildDayRowItem(key, dd, calc, idFor ? { id: idFor(dd) } : null));
+      item.replaceWith(frag);
+    };
+    return item;
+  }
   function buildDayRowItem(key, d, calc, opts){
     opts = opts || {};
     var m = ensureMonth(key);
@@ -1623,9 +1686,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var calc = computePlans(TODAY_KEY);
     var list = $('days-list');
     list.innerHTML = '';
-    for (var d = TODAY_DAY - 1; d >= 1; d--){
-      list.appendChild(buildDayRowItem(TODAY_KEY, d, calc, { id: 'day-row-' + d }));
-    }
+    if (TODAY_DAY > 1) appendDayHistoryRows(list, TODAY_KEY, calc, 1, TODAY_DAY - 1, function(d){ return 'day-row-' + d; });
     if (!list.children.length) list.innerHTML = '<div style="font-size:var(--fs-sm); color:var(--text-muted); padding:var(--sp-3) 0;">Ще немає записів за минулі дні цього місяця.</div>';
   }
   $('days-toggle').onclick = function(){
@@ -1790,9 +1851,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
           // назавжди після того, як місяць закрився (так і сталось у звіті
           // Іллі: кілька днів серпня лишились без даних, а вересень уже
           // не давав до них доступу).
-          for (var d = s.calc.N; d >= 1; d--){
-            body.appendChild(buildDayRowItem(key, d, s.calc));
-          }
+          appendDayHistoryRows(body, key, s.calc, 1, s.calc.N);
           var settingsLink = document.createElement('button'); settingsLink.type = 'button'; settingsLink.className = 'fill-btn';
           settingsLink.textContent = 'Налаштування цього місяця';
           settingsLink.onclick = function(ev2){ ev2.stopPropagation(); openSettings(key); };
