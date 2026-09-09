@@ -361,7 +361,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v20 · нагадування про останній export у меню</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v21 · середнє за останні 7 днів під тижневим блоком</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1665,9 +1665,16 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     if (!any){ el.innerHTML = ''; return; }
     var diff = sumPlan - sumActual;
     var good = diff >= 0;
+    // Другорядний підпис — середнє за останні (до 7) введені дні. Той самий
+    // rolling-average, що вже рахує computeForecast() для прогнозу кінця
+    // місяця; тут показує, чи цей тиждень взагалі типовий для темпу.
+    var forecast = computeForecast(calc, m);
+    var avgLine = forecast
+      ? '<div style="font-size:var(--fs-xs); color:var(--text-muted); margin-top:var(--sp-2); padding:0 var(--sp-1);">Середнє за останні ' + forecast.windowDays + ' ' + pluralizeDays(forecast.windowDays) + ': ' + fmtUAH(forecast.avgPerDayUAH) + '/день</div>'
+      : '';
     el.innerHTML = '<div class="card" style="padding: var(--sp-3) var(--sp-4); border-radius:var(--r-lg); display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2); flex-wrap:wrap;">' +
       '<span style="font-size:var(--fs-sm); color:var(--text-secondary);">Цього тижня (дні ' + weekStart + '–' + weekEnd + ', тиждень ' + weekNum + ')</span>' +
-      '<span style="font-size:var(--fs-sm); font-weight:500; color:' + (good ? C_ACCENT : C_DANGER) + ';">' + (good ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + '</span></div>';
+      '<span style="font-size:var(--fs-sm); font-weight:500; color:' + (good ? C_ACCENT : C_DANGER) + ';">' + (good ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + '</span></div>' + avgLine;
   }
 
   function renderChart(calc, m){
