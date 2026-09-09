@@ -309,7 +309,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
   <div class="card" style="margin-bottom: var(--sp-5);">
     <div class="section-label" style="font-size:var(--fs-md); margin-bottom:var(--sp-3);">Прогрес місяця</div>
-    <div id="dashboard-line" class="dashboard-line" style="margin: 0 0 var(--sp-4);"></div>
+    <div id="dashboard-line" class="dashboard-line" style="margin: 0 0 var(--sp-1);"></div>
+    <div id="pace-percent-line" style="font-size:var(--fs-sm); color:var(--text-secondary); margin-bottom: var(--sp-4);"></div>
     <div id="stat-cards" style="display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--sp-3); margin-bottom: var(--sp-3);"></div>
     <div id="pace-banner" style="margin-bottom: var(--sp-3);"></div>
     <div id="week-checkpoint" style="margin-bottom: var(--sp-3);"></div>
@@ -348,7 +349,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v15 · явна кнопка "Готово" біля степера</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v16 · "% місяця · % бюджету" одним рядком</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1540,6 +1541,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       alertModal('План дня рахується так: залишок бюджету після обов\'язкових платежів рівномірно ділиться на всі дні місяця. Якщо якогось дня заощадили — надбавка додається лише до плану на НАСТУПНИЙ день. Якщо перевитратили — нестача рівномірно й назавжди знімається з планів УСІХ днів, що лишились до кінця місяця. Тому план на майбутні дні міняється в міру того, як ви вводите факт.');
     };
     line.appendChild(infoBtn);
+
+    // Найдіагностичніший сигнал персонального темпу — випереджає темп витрат
+    // темп часу, чи ні — раніше існував тільки як форма лінії на графіку,
+    // без словесного формулювання. Один короткий рядок робить його явним
+    // числом, не дублюючи "За місяць, $" (той каже суму, цей — частку).
+    var pctMonth = Math.round(TODAY_DAY / calc.N * 100);
+    var pctBudget = Math.round(totalSoFarUSD / (m.budgetUSD || 1) * 100);
+    $('pace-percent-line').textContent = pctMonth + '% місяця пройдено · ' + pctBudget + '% бюджету витрачено';
 
     // Прогноз — відповідає на "якщо продовжу так само, чим закінчиться
     // місяць" (єдине з 5 питань 5-секундного тесту головного екрана, на яке
