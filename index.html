@@ -311,10 +311,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">Ідеальний темп vs факт по днях</div>
       </div>
       <div id="chart-month"></div>
+      <!-- Легенда раніше займала 3 текстові рядки — більше висоти, ніж сам
+           графік. Пунктирна сіра лінія "ідеальний темп" самопояснювальна на
+           самому графіку (єдина пунктирна лінія), окремого підпису не
+           потребує; для кольорів факту лишили короткі назви в один рядок. -->
       <div class="legend">
-        <span><i style="background:var(--border-strong);"></i>ідеальний темп (рівний розподіл)</span>
-        <span><i style="background:var(--accent);"></i>факт нижче темпу (заощаджено)</span>
-        <span><i style="background:var(--danger);"></i>факт вище темпу (перевитрата)</span>
+        <span><i style="background:var(--accent);"></i>заощаджено</span>
+        <span><i style="background:var(--danger);"></i>перевитрата</span>
       </div>
     </div>
     <div id="days-balance"></div>
@@ -338,7 +341,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v8 · прогноз кінця місяця за поточним темпом</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v9 · легенда графіка в один рядок</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
