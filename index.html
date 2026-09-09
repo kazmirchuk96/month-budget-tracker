@@ -365,7 +365,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v23 · одноразова підказка для кнопки ±</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v24 · тижневі розділювачі в історії днів</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1482,9 +1482,22 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   // лишаються повнорозмірними окремими рядками. Короткі розриви (1-2 дні)
   // не групуємо — розгортати їх назад тапом дорожче, ніж просто побачити.
   var EMPTY_RUN_GROUP_MIN = 3;
+  // Тижневі розділювачі — орієнтири всередині списку днів, який з часом
+  // зростає до сотень записів по всіх місяцях. Той самий поділ на тижні по
+  // 7 днів місяця (1-7, 8-14, ...), що й "Цього тижня" в "Деталі місяця".
+  // Показуємо лише для списків, довших за один тиждень — інакше зайвий шум.
+  function weekNumOfDay(day){ return Math.floor((day - 1) / 7) + 1; }
+  function buildWeekLabel(wk, weekStart, weekEnd){
+    var el = document.createElement('div');
+    el.style.cssText = 'font-size:var(--fs-xs); color:var(--text-muted); text-transform:uppercase; letter-spacing:0.03em; padding:var(--sp-3) var(--sp-1) var(--sp-1);';
+    el.textContent = 'Тиждень ' + wk + ' · дні ' + weekStart + '–' + weekEnd;
+    return el;
+  }
   function appendDayHistoryRows(container, key, calc, fromDay, toDay, idFor){
     var m = ensureMonth(key);
     var runHigh = null; // найновіший (більший номер) день поточної порожньої серії
+    var showWeekLabels = (toDay - fromDay + 1) > 7;
+    var lastWeek = null;
     function flushRun(runLow){
       if (runHigh === null) return;
       if (runHigh - runLow + 1 < EMPTY_RUN_GROUP_MIN){
@@ -1495,6 +1508,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       runHigh = null;
     }
     for (var d = toDay; d >= fromDay; d--){
+      var wk = weekNumOfDay(d);
+      if (showWeekLabels && wk !== lastWeek){
+        flushRun(d + 1); // серія порожніх днів не перетинає межу тижня
+        lastWeek = wk;
+        var weekStart = (wk - 1) * 7 + 1;
+        var weekEnd = Math.min(weekStart + 6, calc.N);
+        container.appendChild(buildWeekLabel(wk, weekStart, weekEnd));
+      }
       var a = actualOf(m, d);
       if (a === null){
         if (runHigh === null) runHigh = d;
