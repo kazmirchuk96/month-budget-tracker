@@ -365,7 +365,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v22 · статус синхронізації клікабельний</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v23 · одноразова підказка для кнопки ±</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1128,7 +1128,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     // Обгортка навколо самої "пігулки" — потрібна, щоб докласти кнопку
     // зміни знаку (мінус/плюс) як окремий елемент поруч, а не всередині
     // фіксованої за версткою пігулки.
-    var outer = document.createElement('div'); outer.style.cssText = 'display:flex; align-items:center; gap:var(--sp-2); flex:1; min-width:0;';
+    var outer = document.createElement('div'); outer.style.cssText = 'position:relative; display:flex; align-items:center; gap:var(--sp-2); flex:1; min-width:0;';
     var wrap = document.createElement('div'); wrap.className = 'stepper-pill';
     var minus = document.createElement('button'); minus.className = 'pill-step'; minus.type = 'button'; minus.setAttribute('aria-label', 'Зменшити'); minus.innerHTML = icon('minus', 14);
     var div1 = document.createElement('div'); div1.className = 'pill-divider';
@@ -1167,6 +1167,20 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     }
     updateSignBtn();
     outer.appendChild(signBtn);
+
+    // Одноразова підказка при першому показі — кнопка ± сама собою не
+    // самопояснювальна, поки не натиснеш її хоч раз. Ховається назавжди
+    // (прапорець у localStorage) після першого закриття/кліку на ±.
+    if (!localGet('seen-sign-hint')){
+      var hint = document.createElement('div');
+      hint.style.cssText = 'position:absolute; bottom:100%; right:0; margin-bottom:var(--sp-2); background:var(--surface-3); border:var(--bw) solid var(--border-strong); border-radius:var(--r-md); padding:var(--sp-2) var(--sp-3); font-size:var(--fs-xs); color:var(--text-secondary); width:180px; box-shadow:var(--shadow-md); z-index:5;';
+      hint.innerHTML = 'Повернули гроші за покупку? Тапни ±, щоб зробити суму від\'ємною. <span style="color:var(--text-primary); font-weight:600; cursor:pointer; white-space:nowrap;">Зрозуміло</span>';
+      function dismissHint(){ localSet('seen-sign-hint', '1'); if (hint.parentNode) hint.parentNode.removeChild(hint); }
+      hint.querySelector('span').onclick = function(e){ e.stopPropagation(); dismissHint(); };
+      var origSignClick = signBtn.onclick;
+      signBtn.onclick = function(e){ dismissHint(); origSignClick(e); };
+      outer.appendChild(hint);
+    }
     return outer;
   }
 
