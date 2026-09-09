@@ -348,7 +348,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v14 · дельта оновлюється наживо під час набору цифр</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v15 · явна кнопка "Готово" біля степера</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1176,6 +1176,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     stepperRow.appendChild(pill);
     var unitEl = document.createElement('span'); unitEl.className = 'stepper-unit'; unitEl.textContent = '₴';
     stepperRow.appendChild(unitEl);
+    // Цифрова клавіатура iOS (inputMode=numeric) не має клавіші Готово/Return —
+    // єдиний спосіб "завершити" ввід був неявний тап поза полем. Значення й
+    // так уже збережено (setDayActual в oninput), тож ця кнопка лише знімає
+    // фокус — але дає явну, видиму дію завершення замість здогадки.
+    var doneBtn = document.createElement('button'); doneBtn.type = 'button'; doneBtn.className = 'fill-btn';
+    doneBtn.textContent = 'Готово';
+    doneBtn.onclick = function(){ pill.querySelector('.pill-input').blur(); };
+    stepperRow.appendChild(doneBtn);
     block.appendChild(stepperRow);
     block.appendChild(deltaEl);
 
