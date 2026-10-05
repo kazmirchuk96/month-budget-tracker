@@ -365,7 +365,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v24 · тижневі розділювачі в історії днів</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v25 · послідовне заповнення пропущених днів</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -411,6 +411,27 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       <button id="settings-cancel" type="button" class="btn btn-secondary">Скасувати</button>
       <button id="settings-save" type="button" class="btn btn-primary">Зберегти</button>
     </div>
+  </div>
+</div>
+
+<!-- Послідовне заповнення пропущених днів. Вирівняне по ВЕРХУ екрана
+     (align-items:flex-start), бо цифрова клавіатура iOS займає нижню
+     половину — по центру картка опинилась би під нею. -->
+<div id="bulk-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-title" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:220; align-items:flex-start; justify-content:center; padding:var(--sp-4); overflow-y:auto;">
+  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:340px; width:100%; padding:var(--sp-5); margin-top:max(var(--sp-5), env(safe-area-inset-top)); font-family:'Inter', sans-serif; color:var(--text-primary);">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--sp-2);">
+      <strong id="bulk-title" style="font-family:'Fraunces', serif; font-size:var(--fs-xl);"></strong>
+      <span id="bulk-progress" style="font-size:var(--fs-xs); color:var(--text-muted); white-space:nowrap;"></span>
+    </div>
+    <div id="bulk-plan" style="font-size:var(--fs-sm); color:var(--text-secondary); margin:var(--sp-1) 0 var(--sp-4);"></div>
+    <div class="metric-label" style="margin-bottom:var(--sp-2);">Витрачено</div>
+    <div id="bulk-stepper" class="stepper-row-wrap"></div>
+    <div id="bulk-delta" class="delta" style="display:none;"></div>
+    <div style="display:flex; gap:var(--sp-2); margin-top:var(--sp-5);">
+      <button id="bulk-skip" type="button" class="btn btn-secondary" style="flex:1;">Пропустити</button>
+      <button id="bulk-next" type="button" class="btn btn-primary" style="flex:1;">Далі</button>
+    </div>
+    <button id="bulk-close" type="button" class="fill-btn" style="width:100%; margin-top:var(--sp-3);">Закрити</button>
   </div>
 </div>
 
@@ -1124,7 +1145,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   // −/+ і поле вводу об'єднані в один цілісний елемент ("пігулка", як
   // степери в iOS) замість трьох окремих кіл поруч — менше "плаваючих"
   // елементів на екрані при тому самому функціоналі.
-  function stepperPill(value, onLive, onCommit){
+  function stepperPill(value, onLive, onCommit, opts){
+    opts = opts || {};
     // Обгортка навколо самої "пігулки" — потрібна, щоб докласти кнопку
     // зміни знаку (мінус/плюс) як окремий елемент поруч, а не всередині
     // фіксованої за версткою пігулки.
@@ -1171,7 +1193,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     // Одноразова підказка при першому показі — кнопка ± сама собою не
     // самопояснювальна, поки не натиснеш її хоч раз. Ховається назавжди
     // (прапорець у localStorage) після першого закриття/кліку на ±.
-    if (!localGet('seen-sign-hint')){
+    // opts.noHint — в аркуші послідовного заповнення степер стоїть одразу під
+    // заголовком, і підказка (вона кріпиться зверху) перекривала б дату й
+    // лічильник. Там її не показуємо; у звичайній картці дня вона лишається.
+    if (!opts.noHint && !localGet('seen-sign-hint')){
       var hint = document.createElement('div');
       hint.style.cssText = 'position:absolute; bottom:100%; right:0; margin-bottom:var(--sp-2); background:var(--surface-3); border:var(--bw) solid var(--border-strong); border-radius:var(--r-md); padding:var(--sp-2) var(--sp-3); font-size:var(--fs-xs); color:var(--text-secondary); width:180px; box-shadow:var(--shadow-md); z-index:5;';
       hint.innerHTML = 'Повернули гроші за покупку? Тапни ±, щоб зробити суму від\'ємною. <span style="color:var(--text-primary); font-weight:600; cursor:pointer; white-space:nowrap;">Зрозуміло</span>';
@@ -1541,10 +1566,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     header.innerHTML = '<strong style="font-size:var(--fs-sm);">' + lowDay + '–' + dateLabel(p.y, p.m, highDay) + '</strong>' +
       '<span style="font-size:var(--fs-xs); color:var(--text-muted);">' + count + ' ' + pluralizeDays(count) + ' без даних · тапни, щоб заповнити</span>';
     item.appendChild(header);
+    // Тап по групі відкриває послідовне заповнення саме цих днів, а не
+    // розгортає їх у N окремих рядків — це рівно те, що обіцяє підпис
+    // "тапни, щоб заповнити", і на порядок швидше за ручний обхід списку.
     item.onclick = function(){
-      var frag = document.createDocumentFragment();
-      for (var dd = highDay; dd >= lowDay; dd--) frag.appendChild(buildDayRowItem(key, dd, calc, idFor ? { id: idFor(dd) } : null));
-      item.replaceWith(frag);
+      var days = [];
+      for (var dd = lowDay; dd <= highDay; dd++) days.push(dd);
+      openBulkFill(key, days);
     };
     return item;
   }
@@ -1567,14 +1595,123 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     item.appendChild(header);
     var body = document.createElement('div'); body.style.cssText = 'margin-top:var(--sp-3); display:none;';
     var built = false;
+    // Стан "цей день відкритий" переживає render() — інакше рядок згортався
+    // після кожного ж збереження суми, яку в нього щойно ввели.
+    var rowStateKey = key + ':' + d;
+    function openRow(){
+      if (!built){ body.appendChild(dayMetricRow(key, d, calc)); built = true; }
+      body.style.display = 'block';
+      openDayRows[rowStateKey] = true;
+    }
     item.onclick = function(ev){
       if (body.contains(ev.target)) return;
-      if (!built){ body.appendChild(dayMetricRow(key, d, calc)); built = true; }
-      var open = body.style.display !== 'none';
-      body.style.display = open ? 'none' : 'block';
+      if (body.style.display !== 'none'){
+        body.style.display = 'none';
+        delete openDayRows[rowStateKey];
+      } else {
+        openRow();
+      }
     };
+    if (openDayRows[rowStateKey]) openRow();
     item.appendChild(body);
     return item;
+  }
+
+  // ---------- Послідовне заповнення пропущених днів ----------
+  // Сценарій: місяць закінчився (або минув тиждень), кілька днів лишились
+  // без даних, і треба внести їх усі підряд. Через звичайний список це
+  // ~7 дій на КОЖЕН день: проскролити, розгорнути місяць, розгорнути групу,
+  // тапнути день, ввести, "Готово" — і після збереження render() згортав усе
+  // назад, тож наступний день починався з нуля. Тут усе зводиться до
+  // "ввів → Далі → ввів → Далі": одне поле, клавіатура не закривається,
+  // нічого не згортається, render() викликається ОДИН раз у кінці.
+  function missingDaysOf(key, maxDay){
+    var m = ensureMonth(key);
+    var p = parseMonthKey(key);
+    var N = daysInMonth(p.y, p.m);
+    // Для поточного місяця майбутні дні не рахуються пропущеними.
+    var lastDay = maxDay || ((key === TODAY_KEY) ? TODAY_DAY : N);
+    var out = [];
+    for (var d = 1; d <= Math.min(lastDay, N); d++) if (actualOf(m, d) === null) out.push(d);
+    return out;
+  }
+  function openBulkFill(key, days){
+    if (!days || !days.length) return;
+    var overlay = $('bulk-overlay');
+    var p = parseMonthKey(key);
+    var idx = 0;
+    var planNow = 0;
+
+    var deltaEl = $('bulk-delta');
+    function showDelta(val){
+      if (val === null || val === undefined || val === ''){ deltaEl.style.display = 'none'; return; }
+      var diff = planNow - val;
+      deltaEl.className = 'delta ' + (diff >= 0 ? 'delta-good' : 'delta-bad');
+      deltaEl.textContent = (diff >= 0 ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + ' відносно плану дня';
+      deltaEl.style.display = '';
+    }
+
+    var wrap = $('bulk-stepper');
+    wrap.innerHTML = '';
+    // onCommit навмисно порожній: render() тут згорнув би списки й забрав
+    // фокус у поля, тобто закрив би клавіатуру між днями. Малюємо один раз
+    // у finish().
+    var pill = stepperPill(null, function(v){ setDayActual(key, days[idx], v); showDelta(v); }, function(){}, { noHint: true });
+    wrap.appendChild(pill);
+    var unit = document.createElement('span'); unit.className = 'stepper-unit'; unit.textContent = '₴';
+    wrap.appendChild(unit);
+    var input = pill.querySelector('.pill-input');
+
+    function renderStep(){
+      // План дня перераховуємо на кожному кроці: він залежить від уже
+      // введених днів (carry-forward / зменшення бази після перевитрати).
+      var calcNow = computePlans(key);
+      var d = days[idx];
+      planNow = calcNow.plans[d];
+      $('bulk-title').textContent = dateLabel(p.y, p.m, d);
+      $('bulk-progress').textContent = (idx + 1) + ' з ' + days.length + ' · ' + monthLabel(key);
+      $('bulk-plan').textContent = 'План на цей день: ' + fmtUAH(planNow);
+      var existing = actualOf(ensureMonth(key), d);
+      input.value = existing === null ? '' : existing;
+      showDelta(existing);
+      $('bulk-next').textContent = (idx === days.length - 1) ? 'Готово' : 'Далі →';
+      // focus() на вже сфокусованому полі — no-op, який НЕ закриває клавіатуру.
+      input.focus();
+    }
+    function next(){
+      if (idx < days.length - 1){ idx++; renderStep(); }
+      else finish();
+    }
+    function finish(){
+      overlay.removeEventListener('keydown', onKey, true);
+      closeModal(overlay);
+      render(); // єдиний перемальовування — уже після всіх введених днів
+    }
+
+    // Enter на клавіатурі = "Далі". Слухач на оверлеї у фазі ПЕРЕХОПЛЕННЯ,
+    // щоб спрацювати раніше за внутрішній обробник stepperPill, який на Enter
+    // робить blur() (і тим закрив би клавіатуру).
+    function onKey(e){
+      if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); next(); }
+    }
+    overlay.addEventListener('keydown', onKey, true);
+
+    $('bulk-next').onclick = next;
+    $('bulk-skip').onclick = next;
+    $('bulk-close').onclick = finish;
+
+    renderStep();
+    openModal(overlay, { focusEl: input });
+  }
+  // Кнопка-вхід у режим заповнення; повертає null, якщо пропущених днів нема.
+  function buildBulkFillButton(key, maxDay){
+    var missing = missingDaysOf(key, maxDay);
+    if (!missing.length) return null;
+    var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn btn-primary';
+    btn.style.cssText = 'width:100%; margin-bottom:var(--sp-3); font-size:var(--fs-sm);';
+    btn.textContent = 'Заповнити пропущені дні (' + missing.length + ')';
+    btn.onclick = function(ev){ ev.stopPropagation(); openBulkFill(key, missing); };
+    return btn;
   }
 
   // ---------- Прогрес / stat cards ----------
@@ -1811,6 +1948,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var calc = computePlans(TODAY_KEY);
     var list = $('days-list');
     list.innerHTML = '';
+    // Кнопка рахує лише МИНУЛІ дні місяця — сьогоднішній і так стоїть першим
+    // полем у hero-картці, його не треба заповнювати "наздоганяючи".
+    var bulkBtn = TODAY_DAY > 1 ? buildBulkFillButton(TODAY_KEY, TODAY_DAY - 1) : null;
+    if (bulkBtn) list.appendChild(bulkBtn);
     if (TODAY_DAY > 1) appendDayHistoryRows(list, TODAY_KEY, calc, 1, TODAY_DAY - 1, function(d){ return 'day-row-' + d; });
     if (!list.children.length) list.innerHTML = '<div style="font-size:var(--fs-sm); color:var(--text-muted); padding:var(--sp-3) 0;">Ще немає записів за минулі дні цього місяця.</div>';
   }
@@ -1943,6 +2084,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var totalUSD = (calc.info.mandatorySum + actualSum) / m.rateUAH;
     return { calc: calc, m: m, actualSum: actualSum, anyData: anyData, totalUSD: totalUSD, overUnderUSD: m.budgetUSD - totalUSD };
   }
+  // render() перебудовує #months-list і всі рядки днів з нуля, а викликається
+  // після КОЖНОГО збереження суми. Без цих двох прапорців розгорнутий місяць
+  // і відкритий день щоразу згортались назад, сторінка стрибала вгору, і
+  // заповнення кількох пропущених днів поспіль перетворювалось на
+  // "проскролив → розгорнув → ввів → все згорнулось → проскролив знову".
+  var openMonthKey = null;   // який місяць в "Історія місяців" розгорнутий
+  var openDayRows = {};      // 'ключ:день' -> true, які дні відкриті в редагування
   function renderMonthsHistory(){
     var list = $('months-list');
     list.innerHTML = '';
@@ -1971,6 +2119,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       var openBody = false;
       function toggle(){
         openBody = !openBody;
+        openMonthKey = openBody ? key : (openMonthKey === key ? null : openMonthKey);
         body.style.display = openBody ? 'block' : 'none';
         if (openBody && !body.dataset.built){
           body.dataset.built = '1';
@@ -1981,6 +2130,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
           // назавжди після того, як місяць закрився (так і сталось у звіті
           // Іллі: кілька днів серпня лишились без даних, а вересень уже
           // не давав до них доступу).
+          var bulkBtn = buildBulkFillButton(key);
+          if (bulkBtn) body.appendChild(bulkBtn);
           appendDayHistoryRows(body, key, s.calc, 1, s.calc.N);
           var settingsLink = document.createElement('button'); settingsLink.type = 'button'; settingsLink.className = 'fill-btn';
           settingsLink.textContent = 'Налаштування цього місяця';
@@ -2017,6 +2168,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       list.appendChild(item);
     });
     if (!list.children.length) list.innerHTML = '<div style="font-size:var(--fs-sm); color:var(--text-muted); padding:var(--sp-3) 0;">Історія з\'явиться, коли мине перший місяць трекінгу.</div>';
+    // Повертаємо розгорнутий місяць після перебудови — інакше кожне збереження
+    // суми (а воно тягне за собою render()) згортало б щойно відкритий місяць.
+    if (openMonthKey && itemRefs[openMonthKey] && !itemRefs[openMonthKey].isOpen()) itemRefs[openMonthKey].toggle();
     renderMonthNav();
   }
   $('months-toggle').onclick = function(){

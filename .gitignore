@@ -1,0 +1,10 @@
+# Похідний build-артефакт тестів (генерується tests/make_test_build.py)
+budget-tracker.test.html
+budget-tracker.html
+
+# Скріншоти й записи екрана, що лишаються після тестів / надсилання в чат
+*.png
+*.MP4
+*.mp4
+*.mov
+!apple-touch-icon.png
