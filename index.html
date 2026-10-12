@@ -323,8 +323,18 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
          графік вимагає міряти відстань між лініями очима; рядок відповідає
          словами на те саме питання, заради якого на нього дивляться. -->
     <div>
+      <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">Витрати по днях</div>
+      <div id="chart-days-summary" style="font-size:var(--fs-sm); color:var(--text-secondary); margin:var(--sp-1) 0 var(--sp-2); min-height:1.3em;"></div>
+      <div id="chart-days"></div>
+      <div class="legend">
+        <span><i style="background:var(--accent);"></i>у межах плану</span>
+        <span><i style="background:var(--danger);"></i>понад план</span>
+        <span><i style="background:var(--border-strong); border-radius:1px; height:3px; width:14px;"></i>план дня</span>
+      </div>
+    </div>
+    <div style="margin-top:var(--sp-5);">
       <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">Витрати проти ідеального темпу</div>
-      <div id="chart-month-summary" style="font-size:var(--fs-sm); color:var(--text-secondary); margin:var(--sp-1) 0 var(--sp-2);"></div>
+      <div id="chart-month-summary" style="font-size:var(--fs-sm); color:var(--text-secondary); margin:var(--sp-1) 0 var(--sp-2); min-height:1.3em;"></div>
       <div id="chart-month"></div>
       <div class="legend">
         <span><i style="background:var(--accent);"></i>нижче темпу</span>
@@ -334,7 +344,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     </div>
     <div style="margin-top:var(--sp-5);">
       <div class="section-label" style="font-size:var(--fs-md); margin-bottom:0;">Прогноз на кінець місяця по днях</div>
-      <div id="chart-forecast-summary" style="font-size:var(--fs-sm); color:var(--text-secondary); margin:var(--sp-1) 0 var(--sp-2);"></div>
+      <div id="chart-forecast-summary" style="font-size:var(--fs-sm); color:var(--text-secondary); margin:var(--sp-1) 0 var(--sp-2); min-height:1.3em;"></div>
       <div id="chart-forecast"></div>
     </div>
     <!-- Тижневий чекпоінт і баланс днів — Рівень 2/3-інформація (регулярна,
@@ -369,7 +379,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v26 · більші графіки + динаміка прогнозу по днях</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v27 · витрати по днях, прогноз-продовження, тап по графіку</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1806,6 +1816,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     }
 
     renderWeekCheckpoint(calc, m);
+    renderDailyBars(calc, m);
     renderChart(calc, m);
     renderForecastChart(calc, m);
     renderDaysBalance(calc, m);
@@ -1873,6 +1884,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   // на телефоні (~334px), тобто 1 одиниця SVG = 1 CSS-піксель. Раніше viewBox
   // був 620 при тій самій ширині контейнера — усе стискалось у ~0.55×, підписи
   // 9.5px рендерились як ~5px, і графік справді неможливо було прочитати.
+  // Спільна геометрія обох графіків. viewBox дорівнює реальній ширині картки
+  // на телефоні (~334px), тобто 1 одиниця SVG = 1 CSS-піксель. Раніше viewBox
+  // був 620 при тій самій ширині контейнера — усе стискалось у ~0.55×, підписи
+  // 9.5px рендерились як ~5px, і графік справді неможливо було прочитати.
   var CHART_W = 340;
   // Круглі поділки осі. Без цього межі брались як "максимум × 1.06" і давали
   // підписи на кшталт 76к / 57к / $2,940 — формально правильні, але такі
@@ -1887,10 +1902,11 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   }
   function chartGrid(cfg){
     var out = '';
-    for (var s = 0; s <= cfg.steps; s++){
-      var v = cfg.minY + (cfg.maxY - cfg.minY) * s / cfg.steps;
+    var steps = Math.max(1, Math.round((cfg.maxY - cfg.minY) / cfg.step));
+    for (var s = 0; s <= steps; s++){
+      var v = cfg.minY + cfg.step * s;
       var yy = cfg.y(v);
-      out += '<line x1="' + cfg.padL + '" y1="' + yy + '" x2="' + (CHART_W - cfg.padR) + '" y2="' + yy + '" stroke="var(--border)" stroke-width="1" opacity="0.5" />';
+      out += '<line x1="' + cfg.padL + '" y1="' + yy + '" x2="' + (CHART_W - cfg.padR) + '" y2="' + yy + '" stroke="var(--border)" stroke-width="1" opacity="' + (v === 0 ? '0.9' : '0.5') + '" />';
       out += '<text x="' + (cfg.padL - 6) + '" y="' + (yy + 3.5) + '" text-anchor="end" font-size="10" fill="var(--text-muted)">' + cfg.fmt(v) + '</text>';
     }
     return out;
@@ -1902,10 +1918,64 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     });
     return out;
   }
+  function dayTicks(N){
+    return [1, Math.round(N / 4), Math.round(N / 2), Math.round(3 * N / 4), N].filter(function(i, k, arr){
+      return i >= 1 && i <= N && arr.indexOf(i) === k;
+    });
+  }
+  // Порожня група для "прицілу" — вертикальна лінія дня + точка. Малюємо її
+  // одразу в розмітці й далі лише міняємо атрибути: перебудовувати innerHTML
+  // на кожен рух пальця і повільно, і губить обробники подій.
+  function scrubMarkup(padT, h, padB){
+    // Прозорий прямокутник на весь графік — у SVG події вказівника ловляться
+    // лише на самих фігурах, тож без нього тап у порожнє місце між лініями
+    // просто не доходив би до обробника.
+    return '<rect x="0" y="0" width="' + CHART_W + '" height="' + h + '" fill="transparent" pointer-events="all" />' +
+      '<g class="scrub-g" style="display:none" pointer-events="none">' +
+      '<line class="scrub-x" y1="' + padT + '" y2="' + (h - padB) + '" stroke="var(--text-secondary)" stroke-width="1" stroke-dasharray="3,3" />' +
+      '<circle class="scrub-d" r="5" fill="none" stroke="var(--text-primary)" stroke-width="2" style="display:none" />' +
+      '</g>';
+  }
+  // Тап або протягування по графіку показує дані конкретного дня. Залишається
+  // на екрані після відпускання пальця (інакше на тапі значення блимало б і
+  // зникало), скидається на наступному render(). touch-action:pan-y лишає
+  // вертикальний скрол сторінки — забираємо собі лише горизонтальний рух,
+  // інакше палець "залипав" би на графіку при спробі прокрутити екран.
+  function attachScrub(svg, cfg){
+    if (!svg) return;
+    var active = false;
+    svg.style.touchAction = 'pan-y';
+    svg.style.cursor = 'crosshair';
+    // Без цього протягування пальцем по графіку виділяє підписи осі.
+    svg.style.userSelect = 'none';
+    svg.style.webkitUserSelect = 'none';
+    function toSvgX(ev){
+      var r = svg.getBoundingClientRect();
+      return (ev.clientX - r.left) * (CHART_W / (r.width || CHART_W));
+    }
+    function handle(ev){
+      var d = cfg.dayFrom(toSvgX(ev));
+      if (d != null) cfg.show(d);
+    }
+    // Усі слухачі — на самому <svg>, який гине при наступному render(),
+    // тож вони не накопичуються (на window вони б текли на кожен перемальунок).
+    svg.addEventListener('pointerdown', function(ev){
+      active = true;
+      try { svg.setPointerCapture(ev.pointerId); } catch(e){}
+      handle(ev);
+    });
+    svg.addEventListener('pointermove', function(ev){ if (active) handle(ev); });
+    function stop(ev){
+      active = false;
+      try { svg.releasePointerCapture(ev.pointerId); } catch(e){}
+    }
+    svg.addEventListener('pointerup', stop);
+    svg.addEventListener('pointercancel', stop);
+  }
   // Ділить дві серії (факт і орієнтир) на відрізки за знаком різниці,
   // вставляючи ТОЧНУ точку перетину — щоб і колір лінії, і заливка між
   // лініями мінялись рівно там, де факт перетнув орієнтир, а не стрибком
-  // на цілий день. Спільне для обох графіків.
+  // на цілий день. Спільне для обох лінійних графіків.
   function splitBySign(from, to, aAt, bAt){
     var segs = [], cur = null, prev = null;
     for (var i = from; i <= to; i++){
@@ -1943,11 +2013,89 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     return band + line;
   }
 
+  // ---------- Графік 1: витрати по днях (стовпчики) ----------
+  // Найпростіший погляд на дані: скільки пішло кожного конкретного дня проти
+  // плану того дня. Саме тут видно "от цей четвер усе зламав" — у накопичених
+  // кривих такий день розчиняється й виглядає як плавний підйом.
+  function renderDailyBars(calc, m){
+    var el = $('chart-days'), sumEl = $('chart-days-summary');
+    if (!el) return;
+    var N = calc.N, w = CHART_W, h = 168, padL = 44, padR = 12, padT = 14, padB = 24;
+    var lastDay = Math.min(TODAY_DAY, N);
+    var p = parseMonthKey(TODAY_KEY);
+    var maxV = 0, minV = 0, any = false, maxDay = 0, maxAmt = null;
+    for (var d = 1; d <= lastDay; d++){
+      var a = actualOf(m, d);
+      if (a !== null){
+        any = true;
+        if (maxAmt === null || a > maxAmt){ maxAmt = a; maxDay = d; }
+        maxV = Math.max(maxV, a, calc.plans[d]); minV = Math.min(minV, a);
+      }
+    }
+    if (!any){
+      sumEl.textContent = '';
+      el.innerHTML = '<div style="font-size:var(--fs-sm); color:var(--text-muted); padding:var(--sp-4) 0;">Ще немає витрат цього місяця — тут з\'являться стовпчики по днях.</div>';
+      return;
+    }
+    var sc = niceScale(minV, maxV, 4);
+    var y = function(v){ return padT + (h - padT - padB) * (sc.max - v) / ((sc.max - sc.min) || 1); };
+    var grid = chartGrid({ padL: padL, padR: padR, minY: sc.min, maxY: sc.max, step: sc.step, y: y,
+      fmt: function(v){ return v === 0 ? '0' : Math.round(v / 1000) + 'к'; } });
+    // Вісь охоплює лише минулі дні, а не весь місяць: інакше на 12-й день
+    // стовпчики тулились би в лівій третині, а дві третини графіка займала б
+    // порожнеча. Ширину стовпця обмежуємо згори, щоб на 2-3-й день місяця
+    // не виходили величезні плити на пів екрана.
+    var slot = (w - padL - padR) / lastDay;
+    var barW = Math.min(26, Math.max(3, slot * 0.62));
+    var cx = function(d){ return padL + slot * (d - 0.5); };
+    var bars = '', ticksMark = '';
+    for (var d2 = 1; d2 <= lastDay; d2++){
+      var a2 = actualOf(m, d2);
+      var plan2 = calc.plans[d2];
+      if (a2 === null) continue;
+      // Позначка плану дня поверх стовпчика (bullet-chart): видно не лише
+      // скільки витрачено, а й скільки було можна саме того дня. Малюємо
+      // лише там, де є з чим порівнювати — висячі риски над порожніми днями
+      // були б просто шумом.
+      ticksMark += '<line x1="' + (cx(d2) - barW / 2 - 1) + '" y1="' + y(plan2) + '" x2="' + (cx(d2) + barW / 2 + 1) + '" y2="' + y(plan2) + '" stroke="var(--border-strong)" stroke-width="1.5" opacity="0.85" />';
+      var over = a2 > plan2;
+      var y0 = y(0), ya = y(a2);
+      var top = Math.min(y0, ya), hh = Math.max(1.5, Math.abs(ya - y0));
+      bars += '<rect x="' + (cx(d2) - barW / 2) + '" y="' + top + '" width="' + barW + '" height="' + hh + '" rx="1.5" fill="' + (over ? C_DANGER : C_ACCENT) + '" opacity="0.9" />';
+    }
+    el.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; max-width:440px; height:auto; display:block;">' +
+      grid + ticksMark + bars + chartXLabels(dayTicks(lastDay), cx, h) + scrubMarkup(padT, h, padB) + '</svg>';
+
+    sumEl.innerHTML = 'Найдорожчий день — <b>' + dateLabel(p.y, p.m, maxDay) + '</b>, ' + fmtUAH(maxAmt) +
+      ' <span style="color:var(--text-muted);">· тапни для деталей</span>';
+
+    var svg = el.querySelector('svg');
+    var g = svg.querySelector('.scrub-g'), lineEl = svg.querySelector('.scrub-x');
+    attachScrub(svg, {
+      dayFrom: function(xs){ return Math.max(1, Math.min(lastDay, Math.ceil((xs - padL) / slot))); }, // slot рахується від lastDay
+      show: function(dd){
+        g.style.display = '';
+        lineEl.setAttribute('x1', cx(dd)); lineEl.setAttribute('x2', cx(dd));
+        var a3 = actualOf(m, dd), pl = calc.plans[dd];
+        if (a3 === null){
+          sumEl.innerHTML = '<b>' + dateLabel(p.y, p.m, dd) + '</b> · немає даних · план ' + fmtUAH(pl);
+        } else {
+          var diff3 = pl - a3;
+          sumEl.innerHTML = '<b>' + dateLabel(p.y, p.m, dd) + '</b> · ' + fmtUAH(a3) + ' з ' + fmtUAH(pl) +
+            ' · <span style="color:' + (diff3 >= 0 ? C_ACCENT : C_DANGER) + '; font-weight:600;">' +
+            (diff3 >= 0 ? 'заощадив ' + fmtUAH(diff3) : 'перевитрата ' + fmtUAH(-diff3)) + '</span>';
+        }
+      }
+    });
+  }
+
+  // ---------- Графік 2: накопичені витрати проти ідеального темпу ----------
   function renderChart(calc, m){
     var el = $('chart-month');
     var sumEl = $('chart-month-summary');
     var N = calc.N;
     var w = CHART_W, h = 200, padL = 44, padR = 12, padT = 18, padB = 24;
+    var p = parseMonthKey(TODAY_KEY);
     // Сіра лінія показує ІДЕАЛЬНИЙ темп — рівний розподіл дискреційного бюджету
     // на всі дні місяця (calc.base щодня), а НЕ скоригований після перевитрат план.
     var planCum = [0], actCum = [0], lastActIdx = 0;
@@ -1958,17 +2106,21 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       if (a !== null){ ac += a; lastActIdx = d; }
       actCum.push(ac);
     }
-    var rawMax = Math.max(planCum[N], actCum[lastActIdx], calc.info.discretionaryUAH) || 1;
+    // Продовження факту до кінця місяця поточним темпом: без нього лінія
+    // обривалась на сьогодні й доводилось здогадуватись, де вона фінішує.
+    // Темп беремо той самий, що й картка прогнозу (середнє за останні до 7
+    // введених днів), щоб графік і прогноз не суперечили одне одному.
+    var fc = computeForecast(calc, m);
+    var projEnd = (fc && lastActIdx > 0 && lastActIdx < N)
+      ? actCum[lastActIdx] + fc.avgPerDayUAH * (N - lastActIdx) : null;
+    var rawMax = Math.max(planCum[N], actCum[lastActIdx], calc.info.discretionaryUAH, projEnd || 0) || 1;
     var sc = niceScale(0, rawMax, 4);
     var maxY = sc.max;
-    var steps = Math.max(1, Math.round((sc.max - sc.min) / sc.step));
     var x = function(i){ return padL + (w - padL - padR) * i / N; };
     var y = function(v){ return padT + (h - padT - padB) * (maxY - v) / (maxY || 1); };
-    var grid = chartGrid({ padL: padL, padR: padR, minY: 0, maxY: maxY, steps: steps, y: y,
+    var grid = chartGrid({ padL: padL, padR: padR, minY: 0, maxY: maxY, step: sc.step, y: y,
       fmt: function(v){ return v === 0 ? '0' : Math.round(v / 1000) + 'к'; } });
-    var ticks = [1, Math.round(N / 4), Math.round(N / 2), Math.round(3 * N / 4), N].filter(function(i, k, arr){
-      return i >= 1 && i <= N && arr.indexOf(i) === k;
-    });
+    var ticks = dayTicks(N);
     var planPath = ''; for (var i = 0; i <= N; i++) planPath += (i === 0 ? 'M' : 'L') + x(i) + ',' + y(planCum[i]) + ' ';
     var planLine = '<path d="' + planPath + '" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="5,4" stroke-linejoin="round" />';
 
@@ -1985,28 +2137,47 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var diff = planCum[lastActIdx] - actCum[lastActIdx];
     var good = diff >= 0;
     var endColor = good ? C_ACCENT : C_DANGER;
+
+    var projection = '';
+    if (projEnd !== null){
+      var projOver = projEnd > planCum[N];
+      var projColor = projOver ? C_DANGER : C_ACCENT;
+      projection = '<path d="M' + x(lastActIdx) + ',' + y(actCum[lastActIdx]) + ' L' + x(N) + ',' + y(projEnd) + '" fill="none" stroke="' + projColor + '" stroke-width="2" stroke-dasharray="2,3" opacity="0.8" stroke-linecap="round" />' +
+        '<circle cx="' + x(N) + '" cy="' + y(projEnd) + '" r="3" fill="' + projColor + '" opacity="0.8" />' +
+        '<text x="' + (w - padR) + '" y="' + (y(projEnd) + (projOver ? -8 : 15)) + '" text-anchor="end" font-size="10.5" font-weight="600" fill="' + projColor + '">' +
+        (projOver ? '+' : '−') + fmtUAH(Math.abs(projEnd - planCum[N])) + ' до кінця</text>';
+    }
+
     var dotCls = lastActIdx === TODAY_DAY ? ' class="chart-dot-live"' : '';
     var dot = '<circle' + dotCls + ' cx="' + x(lastActIdx) + '" cy="' + y(actCum[lastActIdx]) + '" r="4.5" fill="' + endColor + '" stroke="var(--surface-1)" stroke-width="1.5" />';
-    // Підпис різниці просто біля останньої точки — головний висновок графіка
-    // має читатись без вимірювання відстані між лініями очима.
-    var labelTxt = (good ? '−' : '+') + fmtUAH(Math.abs(diff)).replace('₴', '₴');
-    var anchorEnd = x(lastActIdx) > w * 0.62;
-    var lblX = anchorEnd ? x(lastActIdx) - 8 : x(lastActIdx) + 8;
-    var lblY = y(actCum[lastActIdx]) + (good ? 14 : -8);
-    var endLabel = '<text x="' + lblX + '" y="' + lblY + '" text-anchor="' + (anchorEnd ? 'end' : 'start') + '" font-size="11" font-weight="600" fill="' + endColor + '">' + labelTxt + '</text>';
 
     sumEl.innerHTML = good
       ? 'Витратив на <span style="color:' + C_ACCENT + '; font-weight:600;">' + fmtUAH(diff) + ' менше</span>, ніж мав би до цього дня'
       : 'Витратив на <span style="color:' + C_DANGER + '; font-weight:600;">' + fmtUAH(-diff) + ' більше</span>, ніж мав би до цього дня';
 
     el.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; max-width:440px; height:auto; display:block;">' +
-      grid + planLine + bandLine + dot + endLabel + chartXLabels(ticks, x, h) + '</svg>';
+      grid + planLine + bandLine + projection + dot + chartXLabels(ticks, x, h) + scrubMarkup(padT, h, padB) + '</svg>';
+
+    var svg = el.querySelector('svg');
+    var g = svg.querySelector('.scrub-g'), lineEl = svg.querySelector('.scrub-x'), dotEl = svg.querySelector('.scrub-d');
+    attachScrub(svg, {
+      dayFrom: function(xs){ return Math.max(1, Math.min(lastActIdx, Math.round((xs - padL) / ((w - padL - padR) / N)))); },
+      show: function(dd){
+        g.style.display = ''; dotEl.style.display = '';
+        lineEl.setAttribute('x1', x(dd)); lineEl.setAttribute('x2', x(dd));
+        dotEl.setAttribute('cx', x(dd)); dotEl.setAttribute('cy', y(actCum[dd]));
+        var dif = planCum[dd] - actCum[dd];
+        sumEl.innerHTML = '<b>' + dateLabel(p.y, p.m, dd) + '</b> · разом ' + fmtUAH(actCum[dd]) +
+          ' · <span style="color:' + (dif >= 0 ? C_ACCENT : C_DANGER) + '; font-weight:600;">' +
+          (dif >= 0 ? '−' : '+') + fmtUAH(Math.abs(dif)) + '</span> до темпу';
+      }
+    });
   }
 
-  // Як мінявся прогноз на кінець місяця день за днем. Відповідає на питання,
-  // якого не видно на графіку витрат: я виправляюсь чи закопуюсь глибше?
-  // Кожна точка — прогноз, порахований ТІЄЮ САМОЮ формулою (forecastAsOf),
-  // але станом на той день, тобто так, як його бачив би користувач тоді.
+  // ---------- Графік 3: як мінявся прогноз на кінець місяця ----------
+  // Відповідає на питання, якого не видно на графіку витрат: я виправляюсь
+  // чи закопуюсь глибше? Кожна точка — прогноз, порахований ТІЄЮ САМОЮ
+  // формулою (forecastAsOf), але станом на той день.
   function renderForecastChart(calc, m){
     var el = $('chart-forecast');
     var sumEl = $('chart-forecast-summary');
@@ -2023,30 +2194,27 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       return;
     }
     var goal = m.budgetUSD || 0;
-    var vals = pts.map(function(p){ return p.usd; }).concat([goal]);
+    var vals = pts.map(function(p2){ return p2.usd; }).concat([goal]);
     var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
     // Шкала навмисно НЕ від нуля: прогноз коливається у вузькому діапазоні
     // навколо цілі, і від нуля всі зміни злились би в пряму лінію.
     var padV = Math.max((hi - lo) * 0.18, Math.max(goal, 1) * 0.02);
     var sc = niceScale(lo - padV, hi + padV, 4);
     var minY = sc.min, maxY = sc.max;
-    var fSteps = Math.max(1, Math.round((sc.max - sc.min) / sc.step));
     var firstDay = pts[0].day, lastDay = pts[pts.length - 1].day;
-    var x = function(d){ return padL + (w - padL - padR) * (d - firstDay) / Math.max(lastDay - firstDay, 1); };
+    var x = function(d2){ return padL + (w - padL - padR) * (d2 - firstDay) / Math.max(lastDay - firstDay, 1); };
     var y = function(v){ return padT + (h - padT - padB) * (maxY - v) / ((maxY - minY) || 1); };
-    var grid = chartGrid({ padL: padL, padR: padR, minY: minY, maxY: maxY, steps: fSteps, y: y,
+    var grid = chartGrid({ padL: padL, padR: padR, minY: minY, maxY: maxY, step: sc.step, y: y,
       fmt: function(v){ return fmtUSD(v); } });
 
     var goalY = y(goal);
     var goalLine = '<line x1="' + padL + '" y1="' + goalY + '" x2="' + (w - padR) + '" y2="' + goalY + '" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="5,4" />' +
       '<text x="' + (w - padR) + '" y="' + (goalY - 5) + '" text-anchor="end" font-size="10" fill="var(--text-muted)">ціль ' + fmtUSD(goal) + '</text>';
 
-    var byIdx = function(i){ return pts[i].usd; };
-    var segs = splitBySign(0, pts.length - 1, byIdx, function(){ return goal; });
+    var segs = splitBySign(0, pts.length - 1, function(i){ return pts[i].usd; }, function(){ return goal; });
     var xOfIdx = function(i){
-      // i може бути дробовим (точка перетину) — інтерполюємо день між сусідами
-      var lo2 = Math.floor(i), hi2 = Math.ceil(i);
-      var day = pts[lo2].day + (i - lo2) * ((pts[Math.min(hi2, pts.length - 1)] || pts[lo2]).day - pts[lo2].day);
+      var lo2 = Math.floor(i), hi2 = Math.min(Math.ceil(i), pts.length - 1);
+      var day = pts[lo2].day + (i - lo2) * (pts[hi2].day - pts[lo2].day);
       return x(day);
     };
     var bandLine = bandAndLine(segs, xOfIdx, y, C_ACCENT, C_DANGER);
@@ -2055,17 +2223,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var over = last.usd > goal;
     var endColor = over ? C_DANGER : C_ACCENT;
     var dot = '<circle class="chart-dot-live" cx="' + x(last.day) + '" cy="' + y(last.usd) + '" r="4.5" fill="' + endColor + '" stroke="var(--surface-1)" stroke-width="1.5" />';
-    var lblY = y(last.usd) + (over ? -8 : 15);
-    var endLabel = '<text x="' + (x(last.day) - 6) + '" y="' + lblY + '" text-anchor="end" font-size="11" font-weight="600" fill="' + endColor + '">' + fmtUSD(last.usd) + '</text>';
+    var endLabel = '<text x="' + (x(last.day) - 6) + '" y="' + (y(last.usd) + (over ? -8 : 15)) + '" text-anchor="end" font-size="11" font-weight="600" fill="' + endColor + '">' + fmtUSD(last.usd) + '</text>';
 
-    var ticks = [];
     var span = lastDay - firstDay;
+    var xlabels = '', seen = [];
     [0, 0.5, 1].forEach(function(f2){
       var dd = Math.round(firstDay + span * f2);
-      if (ticks.indexOf(dd) === -1) ticks.push(dd);
-    });
-    var xlabels = '';
-    ticks.forEach(function(dd){
+      if (seen.indexOf(dd) !== -1) return;
+      seen.push(dd);
       xlabels += '<text x="' + x(dd) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="10" fill="var(--text-muted)">' + dd + '</text>';
     });
 
@@ -2082,7 +2247,30 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     sumEl.innerHTML = trend;
 
     el.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; max-width:440px; height:auto; display:block;">' +
-      grid + bandLine + goalLine + dot + endLabel + xlabels + '</svg>';
+      grid + bandLine + goalLine + dot + endLabel + xlabels + scrubMarkup(padT, h, padB) + '</svg>';
+
+    var svg = el.querySelector('svg');
+    var g = svg.querySelector('.scrub-g'), lineEl = svg.querySelector('.scrub-x'), dotEl = svg.querySelector('.scrub-d');
+    var byDay = {};
+    pts.forEach(function(pt){ byDay[pt.day] = pt.usd; });
+    attachScrub(svg, {
+      dayFrom: function(xs){
+        var raw = firstDay + (xs - padL) / ((w - padL - padR) / Math.max(lastDay - firstDay, 1));
+        var dd = Math.max(firstDay, Math.min(lastDay, Math.round(raw)));
+        while (dd <= lastDay && byDay[dd] === undefined) dd++;
+        return byDay[dd] === undefined ? null : dd;
+      },
+      show: function(dd){
+        var v = byDay[dd];
+        g.style.display = ''; dotEl.style.display = '';
+        lineEl.setAttribute('x1', x(dd)); lineEl.setAttribute('x2', x(dd));
+        dotEl.setAttribute('cx', x(dd)); dotEl.setAttribute('cy', y(v));
+        var difG = v - goal;
+        sumEl.innerHTML = '<b>' + dateLabel(p.y, p.m, dd) + '</b> · прогноз ' + fmtUSD(v) +
+          ' · <span style="color:' + (difG > 0 ? C_DANGER : C_ACCENT) + '; font-weight:600;">' +
+          (difG > 0 ? 'на ' + fmtUSD(difG) + ' вище цілі' : 'на ' + fmtUSD(-difG) + ' нижче цілі') + '</span>';
+      }
+    });
   }
 
   // ---------- Історія днів поточного місяця ----------
