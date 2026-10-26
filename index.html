@@ -150,9 +150,14 @@
    трьох окремих кіл поруч — менше "плаваючих" елементів, той самий
    функціонал (клавіатура для прямого вводу лишається основним способом). */
 .stepper-row-wrap { display: flex; align-items: center; gap: var(--sp-2); }
-.stepper-pill { display: flex; align-items: center; background: var(--surface-3); border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg); height: var(--tap); flex: 1; min-width: 0; }
-.pill-input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--text-primary); font-size: var(--fs-lg); font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; }
+.stepper-pill { display: flex; align-items: center; background: var(--surface-0); border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg); height: 56px; flex: 1; min-width: 0; }
+.stepper-pill .stepper-unit { padding-right: var(--sp-4); font-size: 20px; }
+.pill-input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--text-primary); font-size: 24px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
 .pill-input:focus { outline: none; }
+/* Глобальне кільце фокуса малювалось рамкою ВСЕРЕДИНІ поля зі своїми кутами.
+   Тепер підсвічується саме поле (фокус лишається видимим — змінюється колір рамки). */
+#tracker-root .pill-input:focus-visible { outline: none; }
+.stepper-pill:focus-within { border-color: var(--accent); }
 .pill-input::placeholder { font-size: var(--fs-md); font-weight: 400; color: var(--text-muted); opacity: 0.85; }
 .quick-actions-row { display: flex; align-items: flex-start; gap: var(--sp-2); margin-top: var(--sp-3); flex-wrap: wrap; }
 .note-input { width: 100%; box-sizing: border-box; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-md); border: var(--bw) solid var(--border); background: var(--surface-3); color: var(--text-primary); font-size: var(--fs-sm); font-family: inherit; }
@@ -190,11 +195,16 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
 .warn-text { font-size: var(--fs-xs); color: var(--warn-text); margin-top: var(--sp-2); display: flex; align-items: flex-start; gap: var(--sp-1); }
 
-.hero-card { border-radius: var(--r-xl); padding: var(--sp-5); margin-bottom: var(--sp-5); background: var(--surface-1); border: var(--bw) solid var(--border); box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
-.hero-card::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(120% 80% at 50% 0%, var(--accent-glow), transparent 62%); }
-.hero-card.is-over::before { background: radial-gradient(120% 80% at 50% 0%, rgba(255,122,84,0.08), transparent 62%); }
-.hero-card > * { position: relative; }
+/* Картка "Сьогодні" з двох зон: верх — статус (ліміт), низ — окрема темніша
+   панель вводу. Чіткий поділ "подивитись" / "ввести". Padding у зон свій, тому
+   у самої картки його немає (див. також медіа-запити нижче). */
+.hero-card { border-radius: var(--r-xl); margin-bottom: var(--sp-5); background: var(--surface-1); border: var(--bw) solid var(--border); box-shadow: var(--shadow-md); overflow: hidden; }
+.hero-head { padding: var(--sp-4) var(--sp-5); }
+.hero-panel { background: var(--surface-2); border-top: var(--bw) solid var(--border); padding: var(--sp-4) var(--sp-5) var(--sp-5); }
+.hero-panel .metric-block { margin-bottom: 0; }
+/* "+ нотатка" у панелі — тихий текст без рамки: другорядна дія не повинна
+   конкурувати з полем і калькулятором. */
+.hero-panel .quick-actions-row .fill-btn { border: none; padding: var(--sp-2) 0; min-height: var(--tap-sm); color: var(--text-muted); }
 
 .row-item { border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-2); background: var(--surface-1); border: var(--bw) solid var(--border); border-left: var(--bw-accent) solid var(--border); cursor: pointer; }
 .progress-track { width: 56px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; flex-shrink: 0; }
@@ -244,19 +254,19 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 @media (max-width: 520px) {
   #stat-cards { grid-template-columns: 1fr 1fr !important; }
   .card { padding: var(--sp-4); }
-  .hero-card { padding: var(--sp-4); }
+  .hero-head { padding: var(--sp-4); }
+  .hero-panel { padding: var(--sp-4); }
   #tracker-root { padding-left: max(var(--sp-3), env(safe-area-inset-left)); padding-right: max(var(--sp-3), env(safe-area-inset-right)); }
   :root { --fs-display: 32px; --fs-h1: 17px; }
 }
 @media (min-width: 900px) {
   :root { --fs-display: 50px; }
-  .card, .hero-card { padding: var(--sp-6); }
+  .card { padding: var(--sp-6); }
   #tracker-root { max-width: 780px; }
 }
 @media (max-width: 380px) {
   #stat-cards { grid-template-columns: 1fr !important; }
   .card { padding: var(--sp-3); }
-  .hero-card { padding: var(--sp-3); }
 }
 @media (prefers-reduced-motion: reduce) {
   #tracker-root *, #app-modal-overlay *, #settings-overlay * {
@@ -373,7 +383,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v30 · прибрано кнопки −/+ та "план дня"</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v31 · нова картка "Сьогодні": ліміт і панель вводу</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1190,7 +1200,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     input.value = (value !== null && value !== undefined) ? String(value) : '';
     wrap.appendChild(input);
     var unitEl = document.createElement('span'); unitEl.className = 'stepper-unit'; unitEl.textContent = '₴';
-    row1.appendChild(wrap); row1.appendChild(unitEl);
+    wrap.appendChild(unitEl);
+    row1.appendChild(wrap);
     outer.appendChild(row1);
 
     var sumEl = document.createElement('div');
@@ -1240,7 +1251,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var row2 = document.createElement('div'); row2.style.cssText = 'display:flex; gap:var(--sp-2);';
     // Калькулятор: дописує "+" у кінець виразу й лишає клавіатуру відкритою.
     var calcBtn = document.createElement('button'); calcBtn.type = 'button';
-    calcBtn.style.cssText = 'flex:1; min-width:0; height:var(--tap); border:var(--bw) solid var(--accent); border-radius:var(--r-lg); background:var(--accent-soft); color:var(--accent-text); font-family:inherit; font-size:var(--fs-md); font-weight:600; cursor:pointer; white-space:nowrap;';
+    calcBtn.style.cssText = 'flex:1; min-width:0; height:var(--tap); border:var(--bw) solid var(--accent); border-radius:var(--r-md); background:transparent; color:var(--accent-text); font-family:inherit; font-size:var(--fs-md); font-weight:600; cursor:pointer; white-space:nowrap;';
     calcBtn.textContent = '+ додати суму';
     calcBtn.title = 'Додати ще одну суму до цієї (напр., кілька платежів з банку)';
     calcBtn.setAttribute('aria-label', 'Додати ще одну суму до цієї');
@@ -1260,7 +1271,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     // Перемикач знаку — для "повернули гроші за покупку": витрата дня має бути
     // від'ємною. Явна кнопка, бо числова клавіатура мобільних не має мінуса.
     var signBtn = document.createElement('button'); signBtn.type = 'button';
-    signBtn.style.cssText = 'width:var(--tap); height:var(--tap); flex-shrink:0; border:var(--bw) solid var(--border-strong); border-radius:var(--r-lg); background:transparent; color:var(--text-primary); font-family:inherit; font-size:var(--fs-md); font-weight:500; cursor:pointer; white-space:nowrap;';
+    signBtn.style.cssText = 'width:var(--tap); height:var(--tap); flex-shrink:0; border:var(--bw) solid var(--border-strong); border-radius:var(--r-md); background:transparent; color:var(--text-primary); font-family:inherit; font-size:var(--fs-md); font-weight:500; cursor:pointer; white-space:nowrap;';
     signBtn.textContent = '±';
     // Те саме, що в "+ додати суму": тап по ± не повинен спершу завершувати
     // ввід (blur згорнув би вираз і перемалював картку ДО кліку, і знак не змінився б).
@@ -1274,7 +1285,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     // збережено наживо, кнопка лише знімає фокус.
     if (opts.withDone){
       var doneBtn = document.createElement('button'); doneBtn.type = 'button'; doneBtn.className = 'fill-btn';
-      doneBtn.style.minHeight = 'var(--tap)'; doneBtn.style.borderRadius = 'var(--r-lg)';
+      doneBtn.style.minHeight = 'var(--tap)'; doneBtn.style.borderRadius = 'var(--r-md)';
       doneBtn.textContent = 'Готово';
       doneBtn.onclick = function(){ input.blur(); };
       row2.appendChild(doneBtn);
@@ -1312,7 +1323,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     saveMonth(key);
   }
 
-  function dayMetricRow(key, d, calc){
+  function dayMetricRow(key, d, calc, opts){
+    opts = opts || {};
     var m = ensureMonth(key);
     var plan = calc.plans[d];
     var actual = actualOf(m, d);
@@ -1320,9 +1332,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     // Без вкладеної картки (раніше цей блок мав власний фон surface-2
     // всередині hero-картки — виглядало як "коробка в коробці").
     var block = document.createElement('div'); block.className = 'metric-block';
-    var top = document.createElement('div'); top.className = 'metric-top-row';
-    var lbl = document.createElement('span'); lbl.className = 'metric-label'; lbl.textContent = 'Витрачено'; top.appendChild(lbl);
-    block.appendChild(top);
+    // opts.hideLabel — у картці "Сьогодні" підпис "Витрачено сьогодні" разом з
+    // кнопкою "скинути" малює сама картка (одним рядком над полем).
+    if (!opts.hideLabel){
+      var top = document.createElement('div'); top.className = 'metric-top-row';
+      var lbl = document.createElement('span'); lbl.className = 'metric-label'; lbl.textContent = 'Витрачено'; top.appendChild(lbl);
+      block.appendChild(top);
+    }
 
     // Дельта "заощадив/перевитрата" раніше оновлювалась лише після blur
     // (повний render()), хоча саме значення вже зберігається в localStorage
@@ -1337,7 +1353,11 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       }
       var diff = plan - val;
       deltaEl.className = 'delta ' + (diff >= 0 ? 'delta-good' : 'delta-bad');
-      deltaEl.textContent = (diff >= 0 ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + ' відносно плану дня';
+      // У картці "Сьогодні" це називається "ліміт" — той самий термін, що й у
+      // великому числі над полем; у списках днів лишається "план дня".
+      deltaEl.textContent = opts.hideLabel
+        ? (diff >= 0 ? 'заощадив ' + fmtUAH(diff) + ' від ліміту' : 'перевитрата ' + fmtUAH(-diff) + ' понад ліміт')
+        : (diff >= 0 ? 'заощадив ' + fmtUAH(diff) : 'перевитрата ' + fmtUAH(-diff)) + ' відносно плану дня';
       deltaEl.style.display = '';
     }
     updateDelta(actual);
@@ -1500,36 +1520,16 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     wrap.innerHTML = '';
     var card = document.createElement('div');
     card.className = 'hero-card' + (isOver ? ' is-over' : '');
-    var header = document.createElement('div');
-    header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--sp-1);';
-    header.innerHTML = '<div style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;"><span class="today-pill">Сьогодні</span><strong style="font-size:var(--fs-lg);">' + dateLabel(parseMonthKey(TODAY_KEY).y, parseMonthKey(TODAY_KEY).m, TODAY_DAY) + '</strong><span style="color:var(--text-secondary); font-size:var(--fs-sm);">День ' + TODAY_DAY + ' з ' + calc.N + '</span></div>';
-    // Видимий текстовий підпис поруч з іконкою — на тачскріні title/tooltip
-    // не показується при тапі, тож без підпису незрозуміло, що робить кнопка.
-    var resetBtn = document.createElement('button'); resetBtn.type = 'button'; resetBtn.className = 'fill-btn'; resetBtn.title = 'Скинути витрату сьогодні'; resetBtn.setAttribute('aria-label', 'Скинути витрату сьогодні');
-    resetBtn.innerHTML = icon('reset', 13) + '<span style="margin-left:4px;">скинути</span>';
-    resetBtn.onclick = function(){
-      confirmModal('Скинути введену витрату за сьогодні?', function(){
-        var mm = ensureMonth(TODAY_KEY);
-        delete mm.days[TODAY_DAY];
-        saveMonth(TODAY_KEY);
-        render();
-      });
-    };
-    header.appendChild(resetBtn);
-    card.appendChild(header);
+    var py = parseMonthKey(TODAY_KEY);
+    // ---- Верхня зона: статус. Дата й бейджі в одному рядку, під ними ліміт на
+    // сьогодні гривнею (долар тут не показуємо — Іллю цікавить лише гривня).
+    var head = document.createElement('div'); head.className = 'hero-head';
+    var r1 = document.createElement('div'); r1.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2); flex-wrap:wrap;';
+    var dateEl = document.createElement('span'); dateEl.style.cssText = 'font-size:var(--fs-sm); color:var(--text-secondary);';
+    dateEl.textContent = 'Сьогодні · ' + dateLabel(py.y, py.m, TODAY_DAY);
+    r1.appendChild(dateEl);
 
-    var planRow = document.createElement('div');
-    planRow.style.cssText = 'display:flex; align-items:baseline; gap:var(--sp-3); margin: var(--sp-2) 0 var(--sp-4); flex-wrap:wrap;';
-    var num = document.createElement('span'); num.className = 'hero-num' + (isOver ? '' : '');
-    num.style.cssText = 'font-size:var(--fs-display); color:' + (isOver ? C_DANGER : 'var(--text-primary)') + ';';
-    num.textContent = fmtUAH(plan);
-    planRow.appendChild(num);
-    var sub = document.createElement('span'); sub.style.cssText = 'font-size:var(--fs-sm); color:var(--text-secondary);';
-    sub.textContent = 'план на сьогодні · ' + fmtUSD(plan / m.rateUAH);
-    planRow.appendChild(sub);
-    card.appendChild(planRow);
-
-    var badgeWrap = document.createElement('div'); badgeWrap.style.cssText = 'margin-bottom: var(--sp-4); display:flex; gap:var(--sp-2); flex-wrap:wrap;';
+    var badgeWrap = document.createElement('div'); badgeWrap.style.cssText = 'display:flex; gap:var(--sp-2); flex-wrap:wrap; justify-content:flex-end;';
     // На перших днях місяця (замало введених днів) темп статистично шумний —
     // одна велика чи мала витрата хитає його на десятки відсотків. Не показуємо
     // бейдж, поки не набереться хоча б PACE_MIN_DAYS введених днів.
@@ -1550,9 +1550,46 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       streakBadge.textContent = streak + ' ' + pluralizeDays(streak) + ' поспіль у плані';
       badgeWrap.appendChild(streakBadge);
     }
-    card.appendChild(badgeWrap);
+    r1.appendChild(badgeWrap);
+    head.appendChild(r1);
 
-    card.appendChild(dayMetricRow(TODAY_KEY, TODAY_DAY, calc));
+    var planRow = document.createElement('div');
+    planRow.style.cssText = 'display:flex; align-items:baseline; gap:var(--sp-2); margin-top:var(--sp-3); flex-wrap:wrap;';
+    var num = document.createElement('span'); num.className = 'hero-num';
+    // Червоний і коли ліміт уже від'ємний (місяць у перевитраті), навіть поки
+    // сьогодні нічого не введено, — не лише коли сьогоднішня витрата його перевищила.
+    num.style.cssText = 'font-size:var(--fs-display); color:' + ((isOver || plan < 0) ? C_DANGER : 'var(--text-primary)') + ';';
+    num.textContent = fmtUAH(plan);
+    planRow.appendChild(num);
+    var sub = document.createElement('span'); sub.style.cssText = 'font-size:var(--fs-sm); color:var(--text-secondary);';
+    sub.textContent = 'ліміт';
+    planRow.appendChild(sub);
+    head.appendChild(planRow);
+    card.appendChild(head);
+
+    // ---- Нижня зона: окрема темніша панель вводу.
+    var panel = document.createElement('div'); panel.className = 'hero-panel';
+    var plabel = document.createElement('div'); plabel.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-2);';
+    var plabelText = document.createElement('span'); plabelText.className = 'metric-label'; plabelText.textContent = 'Витрачено сьогодні';
+    plabel.appendChild(plabelText);
+    // "Скинути" — рідка й небезпечна дія, тож тихий текст без рамки, а не
+    // повноцінна кнопка. Видимий підпис лишаємо: на тачскріні title не показується.
+    var resetBtn = document.createElement('button'); resetBtn.type = 'button';
+    resetBtn.style.cssText = 'background:none; border:none; padding:var(--sp-2) 0 var(--sp-2) var(--sp-3); color:var(--text-muted); font-family:inherit; font-size:var(--fs-sm); cursor:pointer;';
+    resetBtn.title = 'Скинути витрату сьогодні'; resetBtn.setAttribute('aria-label', 'Скинути витрату сьогодні');
+    resetBtn.textContent = 'скинути';
+    resetBtn.onclick = function(){
+      confirmModal('Скинути введену витрату за сьогодні?', function(){
+        var mm = ensureMonth(TODAY_KEY);
+        delete mm.days[TODAY_DAY];
+        saveMonth(TODAY_KEY);
+        render();
+      });
+    };
+    plabel.appendChild(resetBtn);
+    panel.appendChild(plabel);
+    panel.appendChild(dayMetricRow(TODAY_KEY, TODAY_DAY, calc, { hideLabel: true }));
+    card.appendChild(panel);
 
     // Прибрано з hero-картки повністю (за проханням користувача) — ця
     // інформація вже є в блоці "Прогрес місяця" нижче (рядок з "обов'язкові
