@@ -151,10 +151,6 @@
    функціонал (клавіатура для прямого вводу лишається основним способом). */
 .stepper-row-wrap { display: flex; align-items: center; gap: var(--sp-2); }
 .stepper-pill { display: flex; align-items: center; background: var(--surface-3); border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg); height: var(--tap); flex: 1; min-width: 0; }
-.pill-step { width: var(--tap); height: var(--tap); border: none; background: transparent; color: var(--text-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; border-radius: var(--r-lg); transition: background 0.15s; }
-.pill-step:hover { background: var(--surface-0); }
-.pill-step:active { transform: scale(0.92); }
-.pill-divider { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
 .pill-input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--text-primary); font-size: var(--fs-lg); font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; }
 .pill-input:focus { outline: none; }
 .pill-input::placeholder { font-size: var(--fs-md); font-weight: 400; color: var(--text-muted); opacity: 0.85; }
@@ -377,7 +373,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v29 · калькулятор у полі суми, системний шрифт</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v30 · прибрано кнопки −/+ та "план дня"</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1145,15 +1141,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   $('sync-status').addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('sync-status').click(); } });
 
   // ---------- Степер ----------
-  // Крок +/- підлаштовується під суму: дрібні витрати рахуються по ₴10,
-  // великі — по ₴200, щоб не тицяти "+" по 100 разів на одну велику покупку.
-  // Пряме введення числа з клавіатури завжди лишається основним способом.
-  function dynamicStep(v){
-    v = Math.abs(v || 0);
-    if (v < 500) return 10;
-    if (v < 3000) return 50;
-    return 200;
-  }
   // ---- Калькулятор у полі суми ----
   // Поле приймає вираз "120+350+80": у банку суми видно окремими платежами, і
   // раніше їх доводилось рахувати в окремому калькуляторі. Зберігається завжди
@@ -1186,7 +1173,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     return (n < 0 ? '-' : '') + '₴' + abs.toLocaleString('uk-UA', { minimumFractionDigits: abs % 1 ? 2 : 0, maximumFractionDigits: 2 });
   }
 
-  // Поле вводу, −/+ крок, кнопка "+ додати суму" (калькулятор), перемикач знаку ±
+  // Поле вводу, кнопка "+ додати суму" (калькулятор), перемикач знаку ±
   // і, за opts.withDone, "Готово". Будова у ДВА рядки: поле на всю ширину
   // (раніше воно стискалось до ~80px між кнопками — на вираз "120+350+80" не
   // вистачало б місця), кнопки — під ним.
@@ -1195,17 +1182,13 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var outer = document.createElement('div'); outer.style.cssText = 'position:relative; display:flex; flex-direction:column; gap:var(--sp-2); flex:1; min-width:0;';
     var row1 = document.createElement('div'); row1.style.cssText = 'display:flex; align-items:center; gap:var(--sp-2);';
     var wrap = document.createElement('div'); wrap.className = 'stepper-pill';
-    var minus = document.createElement('button'); minus.className = 'pill-step'; minus.type = 'button'; minus.setAttribute('aria-label', 'Зменшити'); minus.innerHTML = icon('minus', 14);
-    var div1 = document.createElement('div'); div1.className = 'pill-divider';
     // type="text", а не "number": у полі має поміститись вираз із плюсами.
     // inputMode="decimal" — цифри й кома (банк показує копійки); "+" дописує кнопка.
     var input = document.createElement('input'); input.className = 'pill-input'; input.type = 'text';
     input.inputMode = 'decimal'; input.enterKeyHint = 'done'; input.autocomplete = 'off'; input.spellcheck = false;
     input.setAttribute('autocapitalize', 'off'); input.placeholder = 'сума або 120+350';
     input.value = (value !== null && value !== undefined) ? String(value) : '';
-    var div2 = document.createElement('div'); div2.className = 'pill-divider';
-    var plus = document.createElement('button'); plus.className = 'pill-step'; plus.type = 'button'; plus.setAttribute('aria-label', 'Збільшити'); plus.innerHTML = icon('plus', 14);
-    wrap.appendChild(minus); wrap.appendChild(div1); wrap.appendChild(input); wrap.appendChild(div2); wrap.appendChild(plus);
+    wrap.appendChild(input);
     var unitEl = document.createElement('span'); unitEl.className = 'stepper-unit'; unitEl.textContent = '₴';
     row1.appendChild(wrap); row1.appendChild(unitEl);
     outer.appendChild(row1);
@@ -1228,10 +1211,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         sumEl.style.display = 'none';
       }
     }
-    // Крок −/+ і перемикач знаку працюють із сумою виразу, не з "сирим" текстом.
+    // Перемикач знаку працює із сумою виразу, не з "сирим" текстом.
     function commit(v){ var rounded = Math.round(v * 100) / 100; input.value = String(rounded); onLive(rounded); onCommit(); refreshExtras(); }
-    minus.onclick = function(){ var cur = total() || 0; commit(cur - dynamicStep(cur)); };
-    plus.onclick = function(){ var cur = total() || 0; commit(cur + dynamicStep(cur)); };
 
     // keepEditing: тап по "+ додати суму" не повинен вважатись завершенням
     // вводу. Без цього blur (він настає ПІСЛЯ pointerdown) згортав би вираз у
@@ -1281,7 +1262,11 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var signBtn = document.createElement('button'); signBtn.type = 'button';
     signBtn.style.cssText = 'width:var(--tap); height:var(--tap); flex-shrink:0; border:var(--bw) solid var(--border-strong); border-radius:var(--r-lg); background:transparent; color:var(--text-primary); font-family:inherit; font-size:var(--fs-md); font-weight:500; cursor:pointer; white-space:nowrap;';
     signBtn.textContent = '±';
-    signBtn.onclick = function(){ var cur = total() || 0; commit(-cur); };
+    // Те саме, що в "+ додати суму": тап по ± не повинен спершу завершувати
+    // ввід (blur згорнув би вираз і перемалював картку ДО кліку, і знак не змінився б).
+    signBtn.addEventListener('pointerdown', function(){ keepEditing = true; });
+    signBtn.addEventListener('mousedown', function(e){ e.preventDefault(); });
+    signBtn.onclick = function(){ keepEditing = false; var cur = total() || 0; commit(-cur); };
 
     row2.appendChild(calcBtn); row2.appendChild(signBtn);
     // "Готово" — на iOS у числовій клавіатурі немає Return, тож без явної кнопки
@@ -1363,15 +1348,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     block.appendChild(stepperRow);
     block.appendChild(deltaEl);
 
-    // "План дня" і "+ нотатка" — тепер рівнозначні кнопки одного стилю в
-    // одному рядку (раніше одна була текстовим лінком, інша — кнопкою з
-    // рамкою, тобто мали різну візуальну вагу без жодної причини).
+    // Рядок швидких дій. Кнопка "план дня" (підставити план як факт) прибрана
+    // за проханням Іллі; лишилась "+ нотатка".
     var actionsRow = document.createElement('div'); actionsRow.className = 'quick-actions-row';
-    var planBtn = document.createElement('button'); planBtn.type = 'button'; planBtn.className = 'fill-btn';
-    planBtn.title = 'Підставити план дня (' + fmtUAH(plan) + ')';
-    planBtn.textContent = 'план дня';
-    planBtn.onclick = function(){ setDayActual(key, d, Math.round(plan)); render(); };
-    actionsRow.appendChild(planBtn);
 
     // Нотатка — прогресивне розкриття: порожнє поле не займає місце щодня,
     // якщо нотатки немає. Якщо вона вже є — одразу показуємо поле вводу.
