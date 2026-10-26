@@ -19,8 +19,10 @@
 <body>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
 :root {
+  /* Рідний шрифт iOS (SF Pro): продукт відкривають лише з iPhone, тож ніякого
+     завантаження зовнішніх шрифтів, жодного "дизайнерського" гарнітура. */
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, 'Helvetica Neue', Arial, sans-serif;
   --surface-0: #0F0E0A;
   --surface-1: #1A1914;
   --surface-2: #232119;
@@ -89,7 +91,7 @@
 }
 
 #tracker-root {
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font);
   color: var(--text-primary);
   width: 100%;
   max-width: 720px;
@@ -102,14 +104,10 @@
   overflow-x: clip;
   line-height: var(--lh-body);
 }
-#tracker-root h1 { font-family: 'Fraunces', serif; font-weight: 600; letter-spacing: var(--tr-heading); line-height: var(--lh-heading); }
-#tracker-root h2 { font-family: 'Fraunces', serif; font-weight: 600; }
+#tracker-root h1 { font-family: var(--font); font-weight: 700; letter-spacing: var(--tr-heading); line-height: var(--lh-heading); }
+#tracker-root h2 { font-family: var(--font); font-weight: 700; }
 #tracker-root p { max-width: 68ch; }
-#tracker-root h1, #tracker-root .hero-num, #tracker-root .section-label {
-  font-optical-sizing: auto;
-  font-variation-settings: 'SOFT' 20, 'WONK' 1;
-}
-.section-label { font-family: 'Fraunces', serif; font-size: var(--fs-lg); font-weight: 500; line-height: var(--lh-heading); letter-spacing: var(--tr-heading); margin-bottom: var(--sp-3); }
+.section-label { font-family: var(--font); font-size: var(--fs-lg); font-weight: 600; line-height: var(--lh-heading); letter-spacing: var(--tr-heading); margin-bottom: var(--sp-3); }
 
 .journey-strip { display: flex; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-1) var(--sp-0) var(--sp-2); scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
@@ -129,7 +127,7 @@
 .journey-cell.today .journey-num { color: var(--text-primary); font-weight: 700; }
 
 .card { background: var(--surface-1); border: var(--bw) solid var(--border); border-radius: var(--r-xl); padding: var(--sp-5); box-shadow: var(--shadow-sm); }
-.hero-num { font-family: 'Fraunces', serif; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: var(--tr-display); line-height: var(--lh-display); transition: color 0.3s; }
+.hero-num { font-family: var(--font); font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: var(--tr-display); line-height: var(--lh-display); transition: color 0.3s; }
 .chip, .badge, .today-pill { display: inline-flex; align-items: center; font-size: var(--fs-xs); font-weight: 600; padding: var(--sp-1) var(--sp-3); border-radius: var(--r-pill); letter-spacing: 0.02em; white-space: nowrap; }
 .badge-ok, .today-pill { background: var(--accent-soft); color: var(--accent-text); }
 .badge-behind { background: var(--warn-soft); color: var(--warn-text); }
@@ -159,6 +157,7 @@
 .pill-divider { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
 .pill-input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--text-primary); font-size: var(--fs-lg); font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; }
 .pill-input:focus { outline: none; }
+.pill-input::placeholder { font-size: var(--fs-md); font-weight: 400; color: var(--text-muted); opacity: 0.85; }
 .quick-actions-row { display: flex; align-items: flex-start; gap: var(--sp-2); margin-top: var(--sp-3); flex-wrap: wrap; }
 .note-input { width: 100%; box-sizing: border-box; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-md); border: var(--bw) solid var(--border); background: var(--surface-3); color: var(--text-primary); font-size: var(--fs-sm); font-family: inherit; }
 .note-input:focus { outline: none; border-color: var(--focus); }
@@ -378,11 +377,11 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v28 · прибрано знак оклику з кружечків днів</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v29 · калькулятор у полі суми, системний шрифт</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
-  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:340px; width:100%; padding:var(--sp-5); font-family:'Inter', sans-serif; color:var(--text-primary);">
+  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:340px; width:100%; padding:var(--sp-5); font-family:var(--font); color:var(--text-primary);">
     <div id="app-modal-message" style="font-size:var(--fs-md); line-height:1.5; margin-bottom:var(--sp-4);"></div>
     <div style="display:flex; justify-content:flex-end; gap:var(--sp-2);">
       <button id="app-modal-cancel" type="button" class="btn btn-secondary">Скасувати</button>
@@ -392,8 +391,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 </div>
 
 <div id="settings-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:200; align-items:center; justify-content:center; padding:var(--sp-4);">
-  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:420px; width:100%; max-height:85vh; overflow:auto; padding:var(--sp-5); font-family:'Inter', sans-serif; color:var(--text-primary);">
-    <h2 id="settings-title" style="font-family:'Fraunces', serif; font-size:var(--fs-lg); font-weight:600; margin:0 0 var(--sp-1);">Налаштування <span id="settings-month-label"></span></h2>
+  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:420px; width:100%; max-height:85vh; overflow:auto; padding:var(--sp-5); font-family:var(--font); color:var(--text-primary);">
+    <h2 id="settings-title" style="font-family:var(--font); font-size:var(--fs-lg); font-weight:600; margin:0 0 var(--sp-1);">Налаштування <span id="settings-month-label"></span></h2>
     <div style="font-size:var(--fs-sm); color:var(--text-secondary); margin-bottom:var(--sp-4);">Бюджет і обов'язкові платежі. Обов'язкові платежі одразу віднімаються з бюджету і не вводяться повторно як денна витрата.</div>
 
     <div class="settings-label">Бюджет на місяць, $</div>
@@ -431,9 +430,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
      (align-items:flex-start), бо цифрова клавіатура iOS займає нижню
      половину — по центру картка опинилась би під нею. -->
 <div id="bulk-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-title" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:220; align-items:flex-start; justify-content:center; padding:var(--sp-4); overflow-y:auto;">
-  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:340px; width:100%; padding:var(--sp-5); margin-top:max(var(--sp-5), env(safe-area-inset-top)); font-family:'Inter', sans-serif; color:var(--text-primary);">
+  <div style="background:var(--surface-2); border: var(--bw) solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width:340px; width:100%; padding:var(--sp-5); margin-top:max(var(--sp-5), env(safe-area-inset-top)); font-family:var(--font); color:var(--text-primary);">
     <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--sp-2);">
-      <strong id="bulk-title" style="font-family:'Fraunces', serif; font-size:var(--fs-xl);"></strong>
+      <strong id="bulk-title" style="font-family:var(--font); font-size:var(--fs-xl);"></strong>
       <span id="bulk-progress" style="font-size:var(--fs-xs); color:var(--text-muted); white-space:nowrap;"></span>
     </div>
     <div id="bulk-plan" style="font-size:var(--fs-sm); color:var(--text-secondary); margin:var(--sp-1) 0 var(--sp-4);"></div>
@@ -1155,63 +1154,156 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     if (v < 3000) return 50;
     return 200;
   }
-  // −/+ і поле вводу об'єднані в один цілісний елемент ("пігулка", як
-  // степери в iOS) замість трьох окремих кіл поруч — менше "плаваючих"
-  // елементів на екрані при тому самому функціоналі.
+  // ---- Калькулятор у полі суми ----
+  // Поле приймає вираз "120+350+80": у банку суми видно окремими платежами, і
+  // раніше їх доводилось рахувати в окремому калькуляторі. Зберігається завжди
+  // сума. Числова клавіатура iOS не має клавіші "+", тому плюс дописує окрема
+  // кнопка (див. calcBtn нижче) — так само, як мінус вирішено кнопкою ±.
+  function normalizeExpr(raw){
+    var s = String(raw).replace(/,/g, '.').replace(/[^0-9+.\-]/g, '').replace(/\++/g, '+');
+    return s.split('+').map(function(t){
+      var neg = t.charAt(0) === '-';
+      var body = t.replace(/-/g, '');
+      var i = body.indexOf('.'); // одна крапка в числі
+      if (i !== -1) body = body.slice(0, i + 1) + body.slice(i + 1).replace(/\./g, '');
+      return (neg ? '-' : '') + body;
+    }).join('+');
+  }
+  // Сума доданків; порожні й недописані ("350+") ігноруються. null — коли в
+  // полі немає жодного числа (тоді витрата дня вважається незаповненою).
+  function evalExpr(raw){
+    var sum = 0, any = false;
+    String(raw).split('+').forEach(function(t){
+      var n = parseFloat(t);
+      if (!isNaN(n)){ sum += n; any = true; }
+    });
+    return any ? Math.round(sum * 100) / 100 : null;
+  }
+  function fmtMoneyExact(n){
+    // Підсумок виразу показуємо з копійками, якщо вони є: fmtUAH округляє до
+    // гривні, і "= ₴1 250" при реальних 1249.50 вводило б в оману.
+    var abs = Math.abs(n);
+    return (n < 0 ? '-' : '') + '₴' + abs.toLocaleString('uk-UA', { minimumFractionDigits: abs % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  }
+
+  // Поле вводу, −/+ крок, кнопка "+ додати суму" (калькулятор), перемикач знаку ±
+  // і, за opts.withDone, "Готово". Будова у ДВА рядки: поле на всю ширину
+  // (раніше воно стискалось до ~80px між кнопками — на вираз "120+350+80" не
+  // вистачало б місця), кнопки — під ним.
   function stepperPill(value, onLive, onCommit, opts){
     opts = opts || {};
-    // Обгортка навколо самої "пігулки" — потрібна, щоб докласти кнопку
-    // зміни знаку (мінус/плюс) як окремий елемент поруч, а не всередині
-    // фіксованої за версткою пігулки.
-    var outer = document.createElement('div'); outer.style.cssText = 'position:relative; display:flex; align-items:center; gap:var(--sp-2); flex:1; min-width:0;';
+    var outer = document.createElement('div'); outer.style.cssText = 'position:relative; display:flex; flex-direction:column; gap:var(--sp-2); flex:1; min-width:0;';
+    var row1 = document.createElement('div'); row1.style.cssText = 'display:flex; align-items:center; gap:var(--sp-2);';
     var wrap = document.createElement('div'); wrap.className = 'stepper-pill';
     var minus = document.createElement('button'); minus.className = 'pill-step'; minus.type = 'button'; minus.setAttribute('aria-label', 'Зменшити'); minus.innerHTML = icon('minus', 14);
     var div1 = document.createElement('div'); div1.className = 'pill-divider';
-    // type="number" + inputMode="numeric" — на iOS/Android це показує
-    // цифрову клавіатуру БЕЗ кнопки "мінус" (обмеження мобільних клавіатур,
-    // не наше). Тому від'ємне значення (напр., повернули гроші за покупку)
-    // вводиться через окрему кнопку signBtn нижче, а не набором з клавіатури.
-    var input = document.createElement('input'); input.className = 'pill-input'; input.type = 'number'; input.step = '1'; input.inputMode = 'numeric'; input.pattern = '[0-9]*';
-    input.value = (value !== null && value !== undefined) ? value : '';
-    input.onfocus = function(){ input.select(); };
+    // type="text", а не "number": у полі має поміститись вираз із плюсами.
+    // inputMode="decimal" — цифри й кома (банк показує копійки); "+" дописує кнопка.
+    var input = document.createElement('input'); input.className = 'pill-input'; input.type = 'text';
+    input.inputMode = 'decimal'; input.enterKeyHint = 'done'; input.autocomplete = 'off'; input.spellcheck = false;
+    input.setAttribute('autocapitalize', 'off'); input.placeholder = 'сума або 120+350';
+    input.value = (value !== null && value !== undefined) ? String(value) : '';
     var div2 = document.createElement('div'); div2.className = 'pill-divider';
     var plus = document.createElement('button'); plus.className = 'pill-step'; plus.type = 'button'; plus.setAttribute('aria-label', 'Збільшити'); plus.innerHTML = icon('plus', 14);
-    function commit(v){ var rounded = Math.round(v); input.value = rounded; onLive(rounded); onCommit(); updateSignBtn(); }
-    minus.onclick = function(){ var cur = parseFloat(input.value) || 0; commit(cur - dynamicStep(cur)); };
-    plus.onclick = function(){ var cur = parseFloat(input.value) || 0; commit(cur + dynamicStep(cur)); };
-    input.oninput = function(){ onLive(input.value !== '' ? parseFloat(input.value) : null); updateSignBtn(); };
-    input.onblur = function(){ onCommit(); };
-    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') input.blur(); });
     wrap.appendChild(minus); wrap.appendChild(div1); wrap.appendChild(input); wrap.appendChild(div2); wrap.appendChild(plus);
-    outer.appendChild(wrap);
+    var unitEl = document.createElement('span'); unitEl.className = 'stepper-unit'; unitEl.textContent = '₴';
+    row1.appendChild(wrap); row1.appendChild(unitEl);
+    outer.appendChild(row1);
 
-    // Перемикач знаку — для випадку "повернули гроші за покупку", коли
-    // витрата дня має бути від'ємною. Явний перемикач замість набору
-    // мінуса з клавіатури, якої на мобільних цифрових клавіатурах немає.
-    var signBtn = document.createElement('button'); signBtn.type = 'button';
-    signBtn.style.cssText = 'width:var(--tap); height:var(--tap); flex-shrink:0; border:var(--bw) solid var(--border-strong); border-radius:var(--r-lg); background:transparent; color:var(--text-primary); font-size:var(--fs-md); font-weight:500; cursor:pointer; white-space:nowrap;';
-    signBtn.textContent = '±';
-    signBtn.onclick = function(){ var cur = parseFloat(input.value) || 0; commit(-cur); };
-    function updateSignBtn(){
-      var cur = parseFloat(input.value);
-      var negative = !isNaN(cur) && cur < 0;
+    var sumEl = document.createElement('div');
+    sumEl.style.cssText = 'display:none; font-size:var(--fs-sm); font-weight:600; color:var(--accent-text); font-variant-numeric:tabular-nums;';
+    outer.appendChild(sumEl);
+
+    function total(){ return evalExpr(input.value); }
+    function refreshExtras(){
+      var cur = total();
+      var negative = cur !== null && cur < 0;
       signBtn.title = negative ? 'Зробити суму додатною' : 'Зробити суму від\'ємною (напр., повернули гроші)';
       signBtn.setAttribute('aria-label', signBtn.title);
       signBtn.style.color = negative ? C_DANGER : 'var(--text-primary)';
       signBtn.style.borderColor = negative ? C_DANGER : 'var(--border-strong)';
+      if (input.value.indexOf('+') !== -1 && cur !== null){
+        sumEl.textContent = 'Разом ' + fmtMoneyExact(cur); sumEl.style.display = '';
+      } else {
+        sumEl.style.display = 'none';
+      }
     }
-    updateSignBtn();
-    outer.appendChild(signBtn);
+    // Крок −/+ і перемикач знаку працюють із сумою виразу, не з "сирим" текстом.
+    function commit(v){ var rounded = Math.round(v * 100) / 100; input.value = String(rounded); onLive(rounded); onCommit(); refreshExtras(); }
+    minus.onclick = function(){ var cur = total() || 0; commit(cur - dynamicStep(cur)); };
+    plus.onclick = function(){ var cur = total() || 0; commit(cur + dynamicStep(cur)); };
 
-    // Одноразова підказка при першому показі — кнопка ± сама собою не
-    // самопояснювальна, поки не натиснеш її хоч раз. Ховається назавжди
-    // (прапорець у localStorage) після першого закриття/кліку на ±.
-    // opts.noHint — в аркуші послідовного заповнення степер стоїть одразу під
-    // заголовком, і підказка (вона кріпиться зверху) перекривала б дату й
-    // лічильник. Там її не показуємо; у звичайній картці дня вона лишається.
+    // keepEditing: тап по "+ додати суму" не повинен вважатись завершенням
+    // вводу. Без цього blur (він настає ПІСЛЯ pointerdown) згортав би вираз у
+    // суму й перемальовував картку (onCommit → render()), а разом із нею —
+    // губив би клавіатуру й дописаний плюс.
+    var keepEditing = false;
+    input.oninput = function(){
+      var raw = input.value, norm = normalizeExpr(raw);
+      if (norm !== raw){
+        var pos = input.selectionStart;
+        input.value = norm;
+        try { var np = Math.max(0, pos - (raw.length - norm.length)); input.setSelectionRange(np, np); } catch(e){}
+      }
+      onLive(total()); refreshExtras();
+    };
+    input.onfocus = function(){ keepEditing = false; input.select(); };
+    input.onblur = function(){
+      if (keepEditing) return;
+      // Завершили ввід: вираз "120+350" згортаємо в одну суму.
+      if (input.value.indexOf('+') !== -1){ var t = total(); input.value = t === null ? '' : String(t); }
+      onCommit(); refreshExtras();
+    };
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') input.blur(); });
+
+    var row2 = document.createElement('div'); row2.style.cssText = 'display:flex; gap:var(--sp-2);';
+    // Калькулятор: дописує "+" у кінець виразу й лишає клавіатуру відкритою.
+    var calcBtn = document.createElement('button'); calcBtn.type = 'button';
+    calcBtn.style.cssText = 'flex:1; min-width:0; height:var(--tap); border:var(--bw) solid var(--accent); border-radius:var(--r-lg); background:var(--accent-soft); color:var(--accent-text); font-family:inherit; font-size:var(--fs-md); font-weight:600; cursor:pointer; white-space:nowrap;';
+    calcBtn.textContent = '+ додати суму';
+    calcBtn.title = 'Додати ще одну суму до цієї (напр., кілька платежів з банку)';
+    calcBtn.setAttribute('aria-label', 'Додати ще одну суму до цієї');
+    calcBtn.addEventListener('pointerdown', function(){ keepEditing = true; });
+    // Не віддаємо фокус кнопці (десктоп): інакше поле втрачає фокус і клавіатура зникає.
+    calcBtn.addEventListener('mousedown', function(e){ e.preventDefault(); });
+    calcBtn.onclick = function(){
+      keepEditing = false;
+      var v = input.value, last = v.charAt(v.length - 1);
+      // Плюс лише після числа: порожнє поле чи вже стоїть "+" — нічого не дописуємо.
+      if (v !== '' && last !== '+' && last !== '-') input.value = v + '+';
+      input.focus();
+      try { input.setSelectionRange(input.value.length, input.value.length); } catch(e){}
+      refreshExtras();
+    };
+
+    // Перемикач знаку — для "повернули гроші за покупку": витрата дня має бути
+    // від'ємною. Явна кнопка, бо числова клавіатура мобільних не має мінуса.
+    var signBtn = document.createElement('button'); signBtn.type = 'button';
+    signBtn.style.cssText = 'width:var(--tap); height:var(--tap); flex-shrink:0; border:var(--bw) solid var(--border-strong); border-radius:var(--r-lg); background:transparent; color:var(--text-primary); font-family:inherit; font-size:var(--fs-md); font-weight:500; cursor:pointer; white-space:nowrap;';
+    signBtn.textContent = '±';
+    signBtn.onclick = function(){ var cur = total() || 0; commit(-cur); };
+
+    row2.appendChild(calcBtn); row2.appendChild(signBtn);
+    // "Готово" — на iOS у числовій клавіатурі немає Return, тож без явної кнопки
+    // єдиний спосіб завершити ввід — неявний тап поза полем. Значення вже
+    // збережено наживо, кнопка лише знімає фокус.
+    if (opts.withDone){
+      var doneBtn = document.createElement('button'); doneBtn.type = 'button'; doneBtn.className = 'fill-btn';
+      doneBtn.style.minHeight = 'var(--tap)'; doneBtn.style.borderRadius = 'var(--r-lg)';
+      doneBtn.textContent = 'Готово';
+      doneBtn.onclick = function(){ input.blur(); };
+      row2.appendChild(doneBtn);
+    }
+    outer.appendChild(row2);
+    refreshExtras();
+
+    // Одноразова підказка для ± (прапорець у localStorage). Звичайний рядок у
+    // потоці, а не плаваюча бульбашка: будь-яка абсолютна позиція накривала б
+    // або саме поле вводу (зверху), або рядок "заощадив…" й кнопки (знизу).
+    // opts.noHint — в аркуші послідовного заповнення її не показуємо.
     if (!opts.noHint && !localGet('seen-sign-hint')){
       var hint = document.createElement('div');
-      hint.style.cssText = 'position:absolute; bottom:100%; right:0; margin-bottom:var(--sp-2); background:var(--surface-3); border:var(--bw) solid var(--border-strong); border-radius:var(--r-md); padding:var(--sp-2) var(--sp-3); font-size:var(--fs-xs); color:var(--text-secondary); width:180px; box-shadow:var(--shadow-md); z-index:5;';
+      hint.style.cssText = 'font-size:var(--fs-xs); color:var(--text-muted); line-height:var(--lh-caption);';
       hint.innerHTML = 'Повернули гроші за покупку? Тапни ±, щоб зробити суму від\'ємною. <span style="color:var(--text-primary); font-weight:600; cursor:pointer; white-space:nowrap;">Зрозуміло</span>';
       function dismissHint(){ localSet('seen-sign-hint', '1'); if (hint.parentNode) hint.parentNode.removeChild(hint); }
       hint.querySelector('span').onclick = function(e){ e.stopPropagation(); dismissHint(); };
@@ -1266,18 +1358,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     updateDelta(actual);
 
     var stepperRow = document.createElement('div'); stepperRow.className = 'stepper-row-wrap';
-    var pill = stepperPill(actual, function(v){ setDayActual(key, d, v); updateDelta(v); }, function(){ render(); });
+    var pill = stepperPill(actual, function(v){ setDayActual(key, d, v); updateDelta(v); }, function(){ render(); }, { withDone: true });
     stepperRow.appendChild(pill);
-    var unitEl = document.createElement('span'); unitEl.className = 'stepper-unit'; unitEl.textContent = '₴';
-    stepperRow.appendChild(unitEl);
-    // Цифрова клавіатура iOS (inputMode=numeric) не має клавіші Готово/Return —
-    // єдиний спосіб "завершити" ввід був неявний тап поза полем. Значення й
-    // так уже збережено (setDayActual в oninput), тож ця кнопка лише знімає
-    // фокус — але дає явну, видиму дію завершення замість здогадки.
-    var doneBtn = document.createElement('button'); doneBtn.type = 'button'; doneBtn.className = 'fill-btn';
-    doneBtn.textContent = 'Готово';
-    doneBtn.onclick = function(){ pill.querySelector('.pill-input').blur(); };
-    stepperRow.appendChild(doneBtn);
     block.appendChild(stepperRow);
     block.appendChild(deltaEl);
 
@@ -1486,7 +1568,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var streak = computeStreak(calc, m);
     if (streak >= 2){
       var streakBadge = document.createElement('span'); streakBadge.className = 'badge badge-ok';
-      streakBadge.textContent = '🔥 ' + streak + ' ' + pluralizeDays(streak) + ' поспіль у плані';
+      streakBadge.textContent = streak + ' ' + pluralizeDays(streak) + ' поспіль у плані';
       badgeWrap.appendChild(streakBadge);
     }
     card.appendChild(badgeWrap);
@@ -1675,8 +1757,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     // у finish().
     var pill = stepperPill(null, function(v){ setDayActual(key, days[idx], v); showDelta(v); }, function(){}, { noHint: true });
     wrap.appendChild(pill);
-    var unit = document.createElement('span'); unit.className = 'stepper-unit'; unit.textContent = '₴';
-    wrap.appendChild(unit);
     var input = pill.querySelector('.pill-input');
 
     function renderStep(){
@@ -1716,6 +1796,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     $('bulk-next').onclick = next;
     $('bulk-skip').onclick = next;
     $('bulk-close').onclick = finish;
+    // Кнопки не забирають фокус у поля: інакше blur згортає вираз "200+150" у
+    // суму, рядок "Разом…" зникає, кнопки зсуваються вгору між mousedown і
+    // mouseup, і клік "промахується" повз кнопку (день не перемикається, а
+    // клавіатура зникає). Це проявлялось на десктопі; на iOS кнопка фокус не
+    // забирає, але покладатись на це не варто.
+    ['bulk-next', 'bulk-skip'].forEach(function(id){
+      $(id).onmousedown = function(e){ e.preventDefault(); };
+    });
 
     renderStep();
     openModal(overlay, { focusEl: input });
@@ -1799,12 +1887,12 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     var banner = $('pace-banner');
     if (behind){
       var tomorrowPlan = TODAY_DAY < calc.N ? calc.plans[TODAY_DAY + 1] : calc.plans[TODAY_DAY];
-      banner.innerHTML = '<div class="card" style="border-left: var(--bw-accent) solid ' + C_WARN + '; border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4);">' +
+      banner.innerHTML = '<div class="card" style="border: var(--bw) solid color-mix(in srgb, ' + C_WARN + ' 45%, transparent); background: color-mix(in srgb, ' + C_WARN + ' 9%, var(--surface-1)); border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4);">' +
         '<div style="font-size: var(--fs-md); font-weight: 500; margin-bottom: var(--sp-1);">Темп відстає від бюджету $' + m.budgetUSD + '</div>' +
         '<div style="font-size:var(--fs-sm); color:var(--text-secondary);">Новий орієнтир на завтра: ' + fmtUAH(tomorrowPlan) + '/день — трекер вже перерахував це, зменшивши план решти днів.</div></div>';
     } else if (ahead && cum.hasActual){
-      banner.innerHTML = '<div class="card" style="border-left: var(--bw-accent) solid ' + C_ACCENT + '; border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4);">' +
-        '<div style="font-size: var(--fs-md); font-weight: 500;">🎉 Випереджаєш бюджет $' + m.budgetUSD + '</div></div>';
+      banner.innerHTML = '<div class="card" style="border: var(--bw) solid color-mix(in srgb, ' + C_ACCENT + ' 45%, transparent); background: color-mix(in srgb, ' + C_ACCENT + ' 9%, var(--surface-1)); border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4);">' +
+        '<div style="font-size: var(--fs-md); font-weight: 500;">Випереджаєш бюджет $' + m.budgetUSD + '</div></div>';
     } else {
       banner.innerHTML = '';
     }
