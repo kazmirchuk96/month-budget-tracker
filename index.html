@@ -202,9 +202,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .hero-head { padding: var(--sp-4) var(--sp-5); }
 .hero-panel { background: var(--surface-2); border-top: var(--bw) solid var(--border); padding: var(--sp-4) var(--sp-5) var(--sp-5); }
 .hero-panel .metric-block { margin-bottom: 0; }
-/* "+ нотатка" у панелі — тихий текст без рамки: другорядна дія не повинна
-   конкурувати з полем і калькулятором. */
-.hero-panel .quick-actions-row .fill-btn { border: none; padding: var(--sp-2) 0; min-height: var(--tap-sm); color: var(--text-muted); }
 
 .row-item { border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-2); background: var(--surface-1); border: var(--bw) solid var(--border); border-left: var(--bw-accent) solid var(--border); cursor: pointer; }
 .progress-track { width: 56px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; flex-shrink: 0; }
@@ -383,7 +380,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div id="months-list" style="display:none;"></div>
 
-  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v31 · нова картка "Сьогодні": ліміт і панель вводу</div>
+  <div style="text-align:center; font-size:var(--fs-xs); color:var(--text-muted); opacity:0.5; margin-top:var(--sp-6);">build v32 · прибрано кнопку "+ нотатка"</div>
 </div>
 
 <div id="app-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-modal-message" style="display:none; position:fixed; inset:0; background:rgba(10,9,6,0.62); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:210; align-items:center; justify-content:center; padding:var(--sp-4);">
@@ -1368,32 +1365,18 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     block.appendChild(stepperRow);
     block.appendChild(deltaEl);
 
-    // Рядок швидких дій. Кнопка "план дня" (підставити план як факт) прибрана
-    // за проханням Іллі; лишилась "+ нотатка".
-    var actionsRow = document.createElement('div'); actionsRow.className = 'quick-actions-row';
-
-    // Нотатка — прогресивне розкриття: порожнє поле не займає місце щодня,
-    // якщо нотатки немає. Якщо вона вже є — одразу показуємо поле вводу.
-    var addNoteBtn = document.createElement('button'); addNoteBtn.type = 'button'; addNoteBtn.className = 'fill-btn';
-    addNoteBtn.textContent = '+ нотатка';
-    var noteWrap = document.createElement('div'); noteWrap.style.cssText = 'flex-basis:100%; margin-top:var(--sp-2);';
-    function showNoteInput(focusIt){
-      addNoteBtn.style.display = 'none';
-      noteWrap.innerHTML = '';
-      var noteInput = document.createElement('input'); noteInput.type = 'text'; noteInput.className = 'note-input'; noteInput.placeholder = 'Нотатка (необов\'язково)'; noteInput.maxLength = 140; noteInput.value = note;
+    // Кнопки "план дня" і "+ нотатка" прибрані за проханням Іллі. Нотатки,
+    // що вже збережені раніше (вони є й в експорті CSV), лишаємо видимими й
+    // редагованими — інакше дані тихо зникли б з екрана. Нову нотатку через
+    // інтерфейс додати більше не можна.
+    if (note){
+      var actionsRow = document.createElement('div'); actionsRow.className = 'quick-actions-row';
+      var noteInput = document.createElement('input'); noteInput.type = 'text'; noteInput.className = 'note-input'; noteInput.placeholder = 'Нотатка'; noteInput.maxLength = 140; noteInput.value = note;
       noteInput.onblur = function(){ note = noteInput.value; setDayNote(key, d, note); if (!note) render(); };
       noteInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') noteInput.blur(); });
-      noteWrap.appendChild(noteInput);
-      if (focusIt) setTimeout(function(){ noteInput.focus(); }, 0);
+      actionsRow.appendChild(noteInput);
+      block.appendChild(actionsRow);
     }
-    if (note){
-      showNoteInput(false);
-    } else {
-      addNoteBtn.onclick = function(){ showNoteInput(true); };
-    }
-    actionsRow.appendChild(addNoteBtn);
-    actionsRow.appendChild(noteWrap);
-    block.appendChild(actionsRow);
 
     return block;
   }
